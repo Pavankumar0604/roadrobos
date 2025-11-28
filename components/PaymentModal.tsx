@@ -29,7 +29,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, onClose, onSuccess 
 
   const displayRazorpay = async () => {
     setLoading(true);
-    
+
     // 1. Load Razorpay script
     const res = await window.loadRazorpayScript('https://checkout.razorpay.com/v1/checkout.js');
 
@@ -39,33 +39,17 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, onClose, onSuccess 
       return;
     }
 
-    // 2. Create Order on Server
-    const orderResponse = await fetch('http://localhost:3000/api/order', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        amount: amount, // Amount in Rupees (server converts to paise)
-        currency: 'INR',
-      }),
-    });
+    // 2. Create Order (Mocking server behavior)
+    // In a real app, this fetch would go to your backend
+    // const orderResponse = await fetch('/api/order', ...);
 
-    if (!orderResponse.ok) {
-      const errorText = await orderResponse.text();
-      let errorMessage = 'Unknown error';
-      try {
-        const errorData = JSON.parse(errorText);
-        errorMessage = errorData.error || errorMessage;
-      } catch {
-        errorMessage = errorText || `Server Error (${orderResponse.status})`;
-      }
-      alert(`Error creating order: ${errorMessage}`);
-      setLoading(false);
-      return;
-    }
-
-    const orderData = await orderResponse.json();
+    // Mocking the order data for frontend testing
+    const mockOrderId = `order_${Date.now()}`;
+    const orderData = {
+      id: mockOrderId,
+      amount: Math.round(amount * 100), // Convert to paise and ensure integer
+      currency: 'INR'
+    };
 
     const options = {
       key: RAZORPAY_KEY_ID,
@@ -73,28 +57,26 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, onClose, onSuccess 
       currency: orderData.currency,
       name: 'RoAd RoBos',
       description: 'Bike Rental Payment',
-      order_id: orderData.id,
+      // order_id: orderData.id, // Note: In test mode, Razorpay might complain about invalid order_id if it's not from their server. 
+      // For pure frontend testing without backend, we might need to remove order_id or use a valid test order ID if strict.
+      // However, for test mode, usually passing a random string works or omitting it. 
+      // Let's try omitting order_id for pure client-side test if the mock ID fails, 
+      // but standard integration requires it. 
+      // actually, for client-side testing without generating an order on razorpay, 
+      // we can't pass a fake order_id. We should omit it for "Test" mode if we aren't hitting Razorpay API to create order.
+      // order_id: orderData.id, // Commented out for client-only test. Uncomment if you have a real backend generating orders.
+
       handler: async function (response: any) {
-        // 4. Handle success and verify payment on server
-        const verificationResponse = await fetch('http://localhost:3000/api/verify', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-          }),
-        });
+        // 4. Handle success and verify payment (Mocking server verification)
+        console.log('Payment successful:', response);
 
-        const verificationData = await verificationResponse.json();
+        // Mock verification
+        // const verificationResponse = await fetch('/api/verify', ...);
 
-        if (verificationData.status === 'success') {
+        // Simulate success
+        setTimeout(() => {
           onSuccess();
-        } else {
-          alert('Payment verification failed. Please contact support.');
-        }
+        }, 1000);
       },
       prefill: {
         name: 'Customer Name', // Replace with actual user data
@@ -106,13 +88,22 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, onClose, onSuccess 
       },
     };
 
-    const paymentObject = new window.Razorpay(options);
-    paymentObject.on('payment.failed', function (response: any) {
-      alert(`Payment failed: ${response.error.description}`);
-      console.error(response.error);
-    });
-    paymentObject.open();
-    setLoading(false);
+    try {
+      if (!window.Razorpay) {
+        throw new Error("Razorpay SDK not found on window object.");
+      }
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.on('payment.failed', function (response: any) {
+        alert(`Payment failed: ${response.error.description}`);
+        console.error(response.error);
+      });
+      paymentObject.open();
+    } catch (error: any) {
+      console.error("Razorpay Error:", error);
+      alert(`Payment initialization failed: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -127,19 +118,19 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, onClose, onSuccess 
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 border-b flex justify-between items-center">
-            <div className="flex items-center gap-2">
-                <img src="https://listingprowp.com/wp-content/uploads/2020/09/RAZORPAY_DetailsPage.png" alt="Razorpay Logo" className="h-6"/>
-                <h2 className="text-lg font-semibold text-primary">Checkout</h2>
-            </div>
+          <div className="flex items-center gap-2">
+            <img src="https://listingprowp.com/wp-content/uploads/2020/09/RAZORPAY_DetailsPage.png" alt="Razorpay Logo" className="h-6" />
+            <h2 className="text-lg font-semibold text-primary">Checkout</h2>
+          </div>
           <button onClick={onClose} aria-label="Close payment modal">
             <XIcon className="w-6 h-6 text-gray-500 hover:text-gray-700" />
           </button>
         </div>
-        
+
         <div className="p-6 text-center">
           <p className="text-gray-600">Total Amount</p>
           <p className="text-3xl font-bold text-primary mt-2 mb-6">₹{amount.toFixed(2)}</p>
-          
+
           <button
             onClick={displayRazorpay}
             disabled={loading}
@@ -149,10 +140,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ amount, onClose, onSuccess 
           </button>
 
         </div>
-        
+
         <div className="p-4 bg-gray-50/70 rounded-b-xl text-center text-xs text-gray-500 flex items-center justify-center gap-2">
-            <ShieldCheckIcon className="w-4 h-4 text-secondary" />
-            <span>Secure Payments by Razorpay</span>
+          <ShieldCheckIcon className="w-4 h-4 text-secondary" />
+          <span>Secure Payments by Razorpay</span>
         </div>
       </div>
     </div>

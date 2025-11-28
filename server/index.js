@@ -12,6 +12,9 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from the React app build
+app.use(express.static(path.join(__dirname, '..', 'dist')));
+
 // Initialize Razorpay
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -28,7 +31,7 @@ app.post('/api/order', async (req, res) => {
     }
 
     const options = {
-      amount: amount * 100, // amount in smallest currency unit (e.g., paise)
+      amount: Math.round(amount * 100), // amount in smallest currency unit (e.g., paise), ensuring it's an integer
       currency,
       receipt: receipt || `receipt_order_${Date.now()}`,
     };
@@ -37,7 +40,9 @@ app.post('/api/order', async (req, res) => {
     res.json(order);
   } catch (error) {
     console.error('Error creating Razorpay order:', error);
-    res.status(500).send('Server Error');
+    // Attempt to extract a meaningful error message from the Razorpay error object
+    const errorMessage = error.error && error.error.description ? error.error.description : 'Failed to create order due to server issue.';
+    res.status(500).json({ error: errorMessage, details: error });
   }
 });
 
@@ -67,6 +72,22 @@ app.post('/api/verify', (req, res) => {
   }
 });
 
+// Generate Application Number - Format: RR'S0054, RR'S0055, etc.
+let appNumberCounter = 54; // Start from 0054
+
+app.get('/api/generate-application-number', (req, res) => {
+  const paddedNumber = String(appNumberCounter++).padStart(4, '0');
+  const appNumber = `RR'S${paddedNumber}`;
+  res.json({ applicationNumber: appNumber });
+});
+
+// All other GET requests not handled before will return the React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Frontend: http://localhost:${PORT}`);
+  console.log(`API: http://localhost:${PORT}/api`);
 });

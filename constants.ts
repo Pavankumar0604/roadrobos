@@ -1,24 +1,12 @@
 import { type Bike, type FAQItem, type City, type Offer, type CaseStudy, type PartnerFAQ, type AdminUser, type Role, type Employee, type Enquiry, type Review, type Transaction, type SiteContent, type PressRelease, type JobOpening, type Application } from './types';
+import { bikeImages } from './src/assets/bikeImports';
 
 export const bikes: Bike[] = [
-  // --- Electric Bikes ---
+  // --- Zeeon Eeva e Color Variants ---
   {
-    id: 7,
-    name: 'Zeeon Gracy i',
-    images: ['https://cdn.bikedekho.com/processedimages/zelio/gracy-i/source/gracy-i68c017977005d.jpg', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000'],
-    type: 'Electric',
-    specs: { cc: 'Range: 120 km', transmission: 'Automatic' },
-    price: { hour: 40, day: 600, week: 3900, month: 12500 },
-    minBookingDur: { hour: 10, day: 1 },
-    kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
-    excessKmCharge: 4,
-    deposit: 2000,
-    availability: 'Available',
-  },
-  {
-    id: 8,
-    name: 'Zeeon Eeva',
-    images: ['https://media.zigcdn.com/media/model/2025/Nov/zelio-eeva-zx-right-side-view_930x620.jpg', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000'],
+    id: 801,
+    name: 'Zeeon Eeva e (Silver)',
+    images: bikeImages.zeeoneevasilver, // Silver variant
     type: 'Electric',
     specs: { cc: 'Top Speed: 50 km/h', transmission: 'Automatic' },
     price: { hour: 35, day: 550, week: 3500, month: 11000 },
@@ -29,37 +17,11 @@ export const bikes: Bike[] = [
     availability: 'Available',
   },
   {
-    id: 9,
-    name: 'Zeeon X Men',
-    images: ['https://cdn.bikedekho.com/processedimages/zelio/x-men/source/x-men67333b568df06.jpg', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000'],
+    id: 802,
+    name: 'Zeeon Eeva e (Red)',
+    images: bikeImages.zeeoneevaered, // Red variant
     type: 'Electric',
-    specs: { cc: 'Range: 80-100 km', transmission: 'Automatic' },
-    price: { hour: 50, day: 750, week: 4800, month: 15000 },
-    minBookingDur: { hour: 10, day: 1 },
-    kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
-    excessKmCharge: 5,
-    deposit: 2000,
-    availability: 'Limited',
-  },
-  {
-    id: 10,
-    name: 'Zeeon Faxion',
-    images: ['https://cpimg.tistatic.com/07237658/b/4/Faxion-Electric-Scooty.jpg', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000'],
-    type: 'Electric',
-    specs: { cc: 'Range: 100 km', transmission: 'Automatic' },
-    price: { hour: 40, day: 600, week: 3800, month: 12000 },
-    minBookingDur: { hour: 10, day: 1 },
-    kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
-    excessKmCharge: 4,
-    deposit: 2000,
-    availability: 'Available',
-  },
-  {
-    id: 11,
-    name: 'Zeeon Trueno',
-    images: ['https://cpimg.tistatic.com/07237656/b/4/Trueno-Electric-Scooty.jpg', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000'],
-    type: 'Electric',
-    specs: { cc: 'Range: 65-75 km', transmission: 'Automatic' },
+    specs: { cc: 'Top Speed: 50 km/h', transmission: 'Automatic' },
     price: { hour: 35, day: 550, week: 3500, month: 11000 },
     minBookingDur: { hour: 10, day: 1 },
     kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
@@ -68,22 +30,48 @@ export const bikes: Bike[] = [
     availability: 'Available',
   },
   {
-    id: 12,
-    name: 'Zeeon Trueno Pro',
-    images: ['https://5.imimg.com/data5/SELLER/Default/2022/10/QT/BW/JO/67059406/trueno-1000x1000.jpg', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000'],
+    id: 803,
+    name: 'Zeeon Eeva e (Blue)',
+    images: bikeImages.zeeoneevaeblue, // Blue variant
     type: 'Electric',
-    specs: { cc: 'Range: 120-140 km', transmission: 'Automatic' },
-    price: { hour: 45, day: 650, week: 4000, month: 13000 },
+    specs: { cc: 'Top Speed: 50 km/h', transmission: 'Automatic' },
+    price: { hour: 35, day: 550, week: 3500, month: 11000 },
     minBookingDur: { hour: 10, day: 1 },
     kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
-    excessKmCharge: 4,
+    excessKmCharge: 3,
     deposit: 2000,
-    availability: 'Limited',
+    availability: 'Available',
+  },
+  {
+    id: 804,
+    name: 'Zeeon Eeva e (White)',
+    images: bikeImages.zeeoneevaewhite, // White variant
+    type: 'Electric',
+    specs: { cc: 'Top Speed: 50 km/h', transmission: 'Automatic' },
+    price: { hour: 35, day: 550, week: 3500, month: 11000 },
+    minBookingDur: { hour: 10, day: 1 },
+    kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
+    excessKmCharge: 3,
+    deposit: 2000,
+    availability: 'Available',
+  },
+  {
+    id: 805,
+    name: 'Zeeon Eeva e (Black)',
+    images: bikeImages.zeeoneevaeblack, // Black variant
+    type: 'Electric',
+    specs: { cc: 'Top Speed: 50 km/h', transmission: 'Automatic' },
+    price: { hour: 35, day: 550, week: 3500, month: 11000 },
+    minBookingDur: { hour: 10, day: 1 },
+    kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
+    excessKmCharge: 3,
+    deposit: 2000,
+    availability: 'Available',
   },
   {
     id: 6,
     name: 'Ather 450X',
-    images: ['https://th.bing.com/th/id/OIP.TXAn-xYIPaDA8thnFXMINgHaEK?w=266&h=180&c=7&r=0&o=7&dpr=1.5&pid=1.7&rm=3', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000'],
+    images: bikeImages.ather450x,
     type: 'Electric',
     specs: { cc: 'Electric', transmission: 'Automatic' },
     price: { hour: 80, day: 1100, week: 6500, month: 20000 },
@@ -97,7 +85,7 @@ export const bikes: Bike[] = [
   {
     id: 1,
     name: 'Honda Activa 6G',
-    images: ['https://cdni.autocarindia.com/Utils/ImageResizer.ashx?n=https:%2F%2Fcdni.autocarindia.com%2FExtraImages%2F20200103014220_Honda-Activa.jpg&h=795&w=1200&c=1', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000'],
+    images: bikeImages.hondaactiva,
     type: 'Scooter',
     specs: { cc: '110cc', transmission: 'Automatic' },
     price: { hour: 30, day: 450, week: 2800, month: 8000 },
@@ -110,8 +98,8 @@ export const bikes: Bike[] = [
   {
     id: 2,
     name: 'Royal Enfield Classic 350',
-    images: ['https://royalenfield.com.au/wp-content/uploads/2021/11/Classic-350-ChromeRed-Hero.png', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000'],
-    type: 'Geared',
+    images: bikeImages.royalenfieldclassic,
+    type: 'Fuel',
     specs: { cc: '350cc', transmission: 'Manual' },
     price: { hour: 120, day: 1800, week: 10000, month: 30000 },
     minBookingDur: { hour: 10, day: 1 },
@@ -123,7 +111,7 @@ export const bikes: Bike[] = [
   {
     id: 3,
     name: 'BMW G310 R',
-    images: ['https://tse1.mm.bing.net/th/id/OIP.DXZKx3GpPNSLCHuSfIxZiAHaE8?rs=1&pid=ImgDetMain&o=7&rm=3', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000'],
+    images: bikeImages.bmwg310r,
     type: 'Superbike',
     specs: { cc: '313cc', transmission: 'Manual' },
     price: { hour: 150, day: 2200, week: 14000, month: 45000 },
@@ -136,7 +124,7 @@ export const bikes: Bike[] = [
   {
     id: 4,
     name: 'TVS Jupiter 125',
-    images: ['https://www.carblogindia.com/wp-content/uploads/2017/03/2017-tvs-jupiter-images-mystic-gold.jpg', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000'],
+    images: bikeImages.tvsjupiter125,
     type: 'Scooter',
     specs: { cc: '125cc', transmission: 'Automatic' },
     price: { hour: 35, day: 500, week: 3000, month: 8500 },
@@ -149,8 +137,8 @@ export const bikes: Bike[] = [
   {
     id: 5,
     name: 'Yamaha MT-15',
-    images: ['https://motortrade.com.ph/wp-content/uploads/2019/03/mt15-ice-fluo.jpg', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000', 'https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000'],
-    type: 'Geared',
+    images: bikeImages.yamahamt15,
+    type: 'Fuel',
     specs: { cc: '155cc', transmission: 'Manual' },
     price: { hour: 100, day: 1500, week: 8500, month: 25000 },
     minBookingDur: { hour: 10, day: 1 },
@@ -163,79 +151,79 @@ export const bikes: Bike[] = [
 
 
 export const faqData: FAQItem[] = [
-    {
-        question: 'What documents are required?',
-        answer: 'You will need a valid driving license, and a government-issued ID proof (like Aadhaar card, Voter ID, or Passport). For international visitors, a valid international driving permit is required.'
-    },
-    {
-        question: 'How is the deposit handled?',
-        answer: 'A refundable security deposit is collected at the time of pickup. The amount varies depending on the bike model. It will be refunded to your original payment method within 5-7 business days after the bike is returned in good condition.'
-    },
-    {
-        question: 'Can I extend my booking?',
-        answer: 'Yes, you can extend your booking subject to availability. Please contact our support team at least 4 hours before your scheduled drop-off time. Extension charges will be applicable as per the standard rates.'
-    },
-    {
-        question: 'Are helmets included?',
-        answer: 'Yes, one helmet is provided complimentary with every booking. A second helmet can be availed for a nominal fee. We strongly advise all riders to wear a helmet for their safety.'
-    },
-    {
-        question: 'What if a bike breaks down?',
-        answer: 'We provide 24/7 roadside assistance. In the unfortunate event of a breakdown, please contact our support helpline immediately. We will arrange for assistance or a replacement vehicle at the earliest.'
-    },
-    {
-        question: 'How do refunds work?',
-        answer: 'For cancellations made up to 24 hours before pickup, a full refund is provided. For cancellations within 24 hours, a cancellation fee may apply. The refund for the security deposit is processed after the trip ends and the bike is inspected.'
-    }
+  {
+    question: 'What documents are required?',
+    answer: 'You will need a valid driving license, and a government-issued ID proof (like Aadhaar card, Voter ID, or Passport). For international visitors, a valid international driving permit is required.'
+  },
+  {
+    question: 'How is the deposit handled?',
+    answer: 'A refundable security deposit is collected at the time of pickup. The amount varies depending on the bike model. It will be refunded to your original payment method within 5-7 business days after the bike is returned in good condition.'
+  },
+  {
+    question: 'Can I extend my booking?',
+    answer: 'Yes, you can extend your booking subject to availability. Please contact our support team at least 4 hours before your scheduled drop-off time. Extension charges will be applicable as per the standard rates.'
+  },
+  {
+    question: 'Are helmets included?',
+    answer: 'Yes, one helmet is provided complimentary with every booking. A second helmet can be availed for a nominal fee. We strongly advise all riders to wear a helmet for their safety.'
+  },
+  {
+    question: 'What if a bike breaks down?',
+    answer: 'We provide 24/7 roadside assistance. In the unfortunate event of a breakdown, please contact our support helpline immediately. We will arrange for assistance or a replacement vehicle at the earliest.'
+  },
+  {
+    question: 'How do refunds work?',
+    answer: 'For cancellations made up to 24 hours before pickup, a full refund is provided. For cancellations within 24 hours, a cancellation fee may apply. The refund for the security deposit is processed after the trip ends and the bike is inspected.'
+  }
 ];
 
 export const cities: City[] = [
-    // Karnataka Cities (30)
-    { name: 'Bangalore', image: 'https://source.unsplash.com/200x200/?Bangalore,city' },
-    { name: 'Bangalore Airport', image: 'https://source.unsplash.com/200x200/?airport,bangalore' },
-    { name: 'Mysore', image: 'https://source.unsplash.com/200x200/?Mysore' },
-    { name: 'Mangalore', image: 'https://source.unsplash.com/200x200/?Mangalore' },
-    { name: 'Hubli-Dharwad', image: 'https://source.unsplash.com/200x200/?Hubli' },
-    { name: 'Gulbarga', image: 'https://source.unsplash.com/200x200/?Gulbarga' },
-    { name: 'Davanagere', image: 'https://source.unsplash.com/200x200/?Davanagere' },
-    { name: 'Belagavi', image: 'https://source.unsplash.com/200x200/?Belagavi' },
-    { name: 'Bellary', image: 'https://source.unsplash.com/200x200/?Bellary' },
-    { name: 'Tumkur', image: 'https://source.unsplash.com/200x200/?Tumkur' },
-    { name: 'Bijapur', image: 'https://source.unsplash.com/200x200/?Bijapur' },
-    { name: 'Shimoga', image: 'https://source.unsplash.com/200x200/?Shimoga' },
-    { name: 'Raichur', image: 'https://source.unsplash.com/200x200/?Raichur' },
-    { name: 'Bidar', image: 'https://source.unsplash.com/200x200/?Bidar' },
-    { name: 'Hospet', image: 'https://source.unsplash.com/200x200/?Hospet' },
-    { name: 'Gadag-Betageri', image: 'https://source.unsplash.com/200x200/?Gadag' },
-    { name: 'Chitradurga', image: 'https://source.unsplash.com/200x200/?Chitradurga' },
-    { name: 'Kolar', image: 'https://source.unsplash.com/200x200/?Kolar' },
-    { name: 'Mandya', image: 'https://source.unsplash.com/200x200/?Mandya' },
-    { name: 'Hassan', image: 'https://source.unsplash.com/200x200/?Hassan' },
-    { name: 'Karwar', image: 'https://source.unsplash.com/200x200/?Karwar' },
-    { name: 'Udupi', image: 'https://source.unsplash.com/200x200/?Udupi' },
-    { name: 'Bagalkot', image: 'https://source.unsplash.com/200x200/?Bagalkot' },
-    { name: 'Chikkaballapur', image: 'https://source.unsplash.com/200x200/?Chikkaballapur' },
-    { name: 'Ramanagara', image: 'https://source.unsplash.com/200x200/?Ramanagara' },
-    { name: 'Yadgir', image: 'https://source.unsplash.com/200x200/?Yadgir' },
-    { name: 'Koppal', image: 'https://source.unsplash.com/200x200/?Koppal' },
-    { name: 'Chikmagalur', image: 'https://source.unsplash.com/200x200/?Chikmagalur' },
-    { name: 'Coorg', image: 'https://source.unsplash.com/200x200/?Coorg' },
-    { name: 'Hampi', image: 'https://source.unsplash.com/200x200/?Hampi' },
-    // Other Specified Cities
-    { name: 'Agra', image: 'https://source.unsplash.com/200x200/?Agra,India' },
-    { name: 'Ahmedabad', image: 'https://source.unsplash.com/200x200/?Ahmedabad' },
-    { name: 'Bhubaneswar', image: 'https://source.unsplash.com/200x200/?Bhubaneswar' },
-    { name: 'Calicut', image: 'https://source.unsplash.com/200x200/?Calicut,India' },
-    { name: 'Chandigarh', image: 'https://source.unsplash.com/200x200/?Chandigarh' },
-    { name: 'Cochin', image: 'https://source.unsplash.com/200x200/?Cochin' },
-    { name: 'Delhi', image: 'https://source.unsplash.com/200x200/?Delhi,India' },
-    { name: 'Gandhinagar', image: 'https://source.unsplash.com/200x200/?Gandhinagar' },
-    { name: 'Guntur', image: 'https://source.unsplash.com/200x200/?Guntur' },
-    { name: 'Gurugram', image: 'https://source.unsplash.com/200x200/?Gurugram' },
-    { name: 'Guwahati', image: 'https://source.unsplash.com/200x200/?Guwahati' },
-    { name: 'Hyderabad', image: 'https://source.unsplash.com/200x200/?Hyderabad,India' },
-    { name: 'Chennai', image: 'https://source.unsplash.com/200x200/?Chennai' },
-    { name: 'Mumbai', image: 'https://source.unsplash.com/200x200/?Mumbai' },
+  // Karnataka Cities (30)
+  { name: 'Bangalore', image: 'https://source.unsplash.com/200x200/?Bangalore,city' },
+  { name: 'Bangalore Airport', image: 'https://source.unsplash.com/200x200/?airport,bangalore' },
+  { name: 'Mysore', image: 'https://source.unsplash.com/200x200/?Mysore' },
+  { name: 'Mangalore', image: 'https://source.unsplash.com/200x200/?Mangalore' },
+  { name: 'Hubli-Dharwad', image: 'https://source.unsplash.com/200x200/?Hubli' },
+  { name: 'Gulbarga', image: 'https://source.unsplash.com/200x200/?Gulbarga' },
+  { name: 'Davanagere', image: 'https://source.unsplash.com/200x200/?Davanagere' },
+  { name: 'Belagavi', image: 'https://source.unsplash.com/200x200/?Belagavi' },
+  { name: 'Bellary', image: 'https://source.unsplash.com/200x200/?Bellary' },
+  { name: 'Tumkur', image: 'https://source.unsplash.com/200x200/?Tumkur' },
+  { name: 'Bijapur', image: 'https://source.unsplash.com/200x200/?Bijapur' },
+  { name: 'Shimoga', image: 'https://source.unsplash.com/200x200/?Shimoga' },
+  { name: 'Raichur', image: 'https://source.unsplash.com/200x200/?Raichur' },
+  { name: 'Bidar', image: 'https://source.unsplash.com/200x200/?Bidar' },
+  { name: 'Hospet', image: 'https://source.unsplash.com/200x200/?Hospet' },
+  { name: 'Gadag-Betageri', image: 'https://source.unsplash.com/200x200/?Gadag' },
+  { name: 'Chitradurga', image: 'https://source.unsplash.com/200x200/?Chitradurga' },
+  { name: 'Kolar', image: 'https://source.unsplash.com/200x200/?Kolar' },
+  { name: 'Mandya', image: 'https://source.unsplash.com/200x200/?Mandya' },
+  { name: 'Hassan', image: 'https://source.unsplash.com/200x200/?Hassan' },
+  { name: 'Karwar', image: 'https://source.unsplash.com/200x200/?Karwar' },
+  { name: 'Udupi', image: 'https://source.unsplash.com/200x200/?Udupi' },
+  { name: 'Bagalkot', image: 'https://source.unsplash.com/200x200/?Bagalkot' },
+  { name: 'Chikkaballapur', image: 'https://source.unsplash.com/200x200/?Chikkaballapur' },
+  { name: 'Ramanagara', image: 'https://source.unsplash.com/200x200/?Ramanagara' },
+  { name: 'Yadgir', image: 'https://source.unsplash.com/200x200/?Yadgir' },
+  { name: 'Koppal', image: 'https://source.unsplash.com/200x200/?Koppal' },
+  { name: 'Chikmagalur', image: 'https://source.unsplash.com/200x200/?Chikmagalur' },
+  { name: 'Coorg', image: 'https://source.unsplash.com/200x200/?Coorg' },
+  { name: 'Hampi', image: 'https://source.unsplash.com/200x200/?Hampi' },
+  // Other Specified Cities
+  { name: 'Agra', image: 'https://source.unsplash.com/200x200/?Agra,India' },
+  { name: 'Ahmedabad', image: 'https://source.unsplash.com/200x200/?Ahmedabad' },
+  { name: 'Bhubaneswar', image: 'https://source.unsplash.com/200x200/?Bhubaneswar' },
+  { name: 'Calicut', image: 'https://source.unsplash.com/200x200/?Calicut,India' },
+  { name: 'Chandigarh', image: 'https://source.unsplash.com/200x200/?Chandigarh' },
+  { name: 'Cochin', image: 'https://source.unsplash.com/200x200/?Cochin' },
+  { name: 'Delhi', image: 'https://source.unsplash.com/200x200/?Delhi,India' },
+  { name: 'Gandhinagar', image: 'https://source.unsplash.com/200x200/?Gandhinagar' },
+  { name: 'Guntur', image: 'https://source.unsplash.com/200x200/?Guntur' },
+  { name: 'Gurugram', image: 'https://source.unsplash.com/200x200/?Gurugram' },
+  { name: 'Guwahati', image: 'https://source.unsplash.com/200x200/?Guwahati' },
+  { name: 'Hyderabad', image: 'https://source.unsplash.com/200x200/?Hyderabad,India' },
+  { name: 'Chennai', image: 'https://source.unsplash.com/200x200/?Chennai' },
+  { name: 'Mumbai', image: 'https://source.unsplash.com/200x200/?Mumbai' },
 ];
 
 export const offersData: Offer[] = [
@@ -360,49 +348,49 @@ export const offersData: Offer[] = [
 ];
 
 export const caseStudies: CaseStudy[] = [
-    {
-        id: 'cs1',
-        partnerName: 'Bangalore Bike Bros',
-        metric: '+40%',
-        metricLabel: 'Monthly Revenue',
-        quote: 'Partnering with RoAd RoBo’s was the best decision for our business. Our fleet utilization has never been higher.',
-        image: 'https://picsum.photos/seed/partner_cs1/400/400',
-    },
-    {
-        id: 'cs2',
-        partnerName: 'Chennai Moto Hub',
-        metric: '2.5x',
-        metricLabel: 'Booking Growth in 6 months',
-        quote: 'The technology and marketing support are top-notch. We can focus on what we do best: maintaining our bikes.',
-        image: 'https://picsum.photos/seed/partner_cs2/400/400',
-    },
-    {
-        id: 'cs3',
-        partnerName: 'Hyderabad Wheels',
-        metric: '95%',
-        metricLabel: 'Fleet Utilization',
-        quote: 'Consistent bookings and fast payouts have transformed our operations. The partner dashboard is incredibly easy to use.',
-        image: 'https://picsum.photos/seed/partner_cs3/400/400',
-    },
+  {
+    id: 'cs1',
+    partnerName: 'Bangalore Bike Bros',
+    metric: '+40%',
+    metricLabel: 'Monthly Revenue',
+    quote: 'Partnering with RoAd RoBo’s was the best decision for our business. Our fleet utilization has never been higher.',
+    image: 'https://picsum.photos/seed/partner_cs1/400/400',
+  },
+  {
+    id: 'cs2',
+    partnerName: 'Chennai Moto Hub',
+    metric: '2.5x',
+    metricLabel: 'Booking Growth in 6 months',
+    quote: 'The technology and marketing support are top-notch. We can focus on what we do best: maintaining our bikes.',
+    image: 'https://picsum.photos/seed/partner_cs2/400/400',
+  },
+  {
+    id: 'cs3',
+    partnerName: 'Hyderabad Wheels',
+    metric: '95%',
+    metricLabel: 'Fleet Utilization',
+    quote: 'Consistent bookings and fast payouts have transformed our operations. The partner dashboard is incredibly easy to use.',
+    image: 'https://picsum.photos/seed/partner_cs3/400/400',
+  },
 ];
 
 export const partnerFaqs: PartnerFAQ[] = [
-    {
-        question: 'How long does the onboarding process take?',
-        answer: 'Once your application is submitted and documents are verified, the entire onboarding process typically takes 5-7 business days. This includes a quality check of your fleet and integration with our platform.',
-    },
-    {
-        question: 'How and when do I get paid?',
-        answer: 'We process partner payouts on a weekly basis. Earnings are transferred directly to your registered bank account. You can track all your earnings and payout statements in the partner dashboard.',
-    },
-    {
-        question: 'What kind of support can I expect?',
-        answer: 'You will have a dedicated Partner Success Manager to assist you. Additionally, our 24/7 support team is available for any operational queries, and our tech team provides support for platform-related issues.',
-    },
-    {
-        question: 'What happens if a customer damages a bike?',
-        answer: 'Our comprehensive damage policy covers such incidents. We handle the customer-side process, including collecting damage fees. Repair costs are assessed transparently, and we work with you to get the bike back on the road quickly.',
-    },
+  {
+    question: 'How long does the onboarding process take?',
+    answer: 'Once your application is submitted and documents are verified, the entire onboarding process typically takes 5-7 business days. This includes a quality check of your fleet and integration with our platform.',
+  },
+  {
+    question: 'How and when do I get paid?',
+    answer: 'We process partner payouts on a weekly basis. Earnings are transferred directly to your registered bank account. You can track all your earnings and payout statements in the partner dashboard.',
+  },
+  {
+    question: 'What kind of support can I expect?',
+    answer: 'You will have a dedicated Partner Success Manager to assist you. Additionally, our 24/7 support team is available for any operational queries, and our tech team provides support for platform-related issues.',
+  },
+  {
+    question: 'What happens if a customer damages a bike?',
+    answer: 'Our comprehensive damage policy covers such incidents. We handle the customer-side process, including collecting damage fees. Repair costs are assessed transparently, and we work with you to get the bike back on the road quickly.',
+  },
 ];
 
 export const adminRoles: { [key: string]: Role } = {
@@ -419,7 +407,7 @@ export const initialAdminUsers: AdminUser[] = [
     passwordHash: 'admin123', // This is for prototype only. Use a proper hash in production.
     role: adminRoles.superAdmin,
   },
-   {
+  {
     id: 'u2',
     name: 'Content Editor',
     email: 'editor@roadrobos.com',
@@ -437,18 +425,18 @@ export const initialEmployees: Employee[] = [
 ];
 
 export const pickupLocations: string[] = [
-    'Babusapalya',
-    'Ejipura',
-    'Jayanagar',
-    'Kanakapura Road',
-    'Koramangala',
-    'Shivajinagar'
+  'Babusapalya',
+  'Ejipura',
+  'Jayanagar',
+  'Kanakapura Road',
+  'Koramangala',
+  'Shivajinagar'
 ];
 
 export const enquiriesData: Enquiry[] = [
-    { id: 'enq1', name: 'Ravi Kumar', email: 'ravi.k@example.com', phone: '9876543210', message: 'I am interested in a long-term rental for 3 months. Can you provide a custom quote for a Honda Activa?', city: 'Bangalore', receivedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), status: 'New' },
-    { id: 'enq2', name: 'Anjali Desai', email: 'anjali.d@example.com', phone: '9123456780', message: 'Do you offer any corporate plans for a team of 15 employees for daily commute?', city: 'Pune', receivedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), status: 'Read' },
-    { id: 'enq3', name: 'Sanjay Singh', email: 'sanjay.s@example.com', phone: '9988776655', message: 'I faced an issue with payment. The amount was debited but the booking was not confirmed. Please check.', city: 'Delhi', receivedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), status: 'Archived' },
+  { id: 'enq1', name: 'Ravi Kumar', email: 'ravi.k@example.com', phone: '9876543210', message: 'I am interested in a long-term rental for 3 months. Can you provide a custom quote for a Honda Activa?', city: 'Bangalore', receivedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), status: 'New' },
+  { id: 'enq2', name: 'Anjali Desai', email: 'anjali.d@example.com', phone: '9123456780', message: 'Do you offer any corporate plans for a team of 15 employees for daily commute?', city: 'Pune', receivedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), status: 'Read' },
+  { id: 'enq3', name: 'Sanjay Singh', email: 'sanjay.s@example.com', phone: '9988776655', message: 'I faced an issue with payment. The amount was debited but the booking was not confirmed. Please check.', city: 'Delhi', receivedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), status: 'Archived' },
 ];
 
 export const reviewsData: Review[] = [
@@ -487,8 +475,8 @@ export const reviewsData: Review[] = [
 ];
 
 export const transactionsData: Transaction[] = [
-    { id: 'txn_123abc', bookingId: 'RRB-1672531200000', customerName: 'Aarav Sharma', amount: 1800, status: 'Paid', date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-    { id: 'txn_456def', bookingId: 'RRB-1672617600000', customerName: 'Priya Patel', amount: 550, status: 'Paid', date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: 'txn_123abc', bookingId: 'RRB-1672531200000', customerName: 'Aarav Sharma', amount: 1800, status: 'Paid', date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() },
+  { id: 'txn_456def', bookingId: 'RRB-1672617600000', customerName: 'Priya Patel', amount: 550, status: 'Paid', date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() },
 ];
 
 export const initialSiteContent: SiteContent = {
@@ -503,27 +491,27 @@ export const initialSiteContent: SiteContent = {
 };
 
 export const pressReleases: PressRelease[] = [
-    {
-        id: 'pr1',
-        title: 'RoAd RoBo’s Launches in Chennai and Hyderabad, Expanding its Green Footprint',
-        date: '2024-10-15T10:00:00Z',
-        summary: 'SebChris Mobility today announced the expansion of its popular electric scooter rental service, RoAd RoBo’s, to two new major metropolitan areas: Chennai and Hyderabad. This move marks a significant step in the company’s mission to provide sustainable last-mile logistics solutions across India.',
-        link: '#',
-    },
-    {
-        id: 'pr2',
-        title: 'SebChris Mobility Secures Seed Funding to Accelerate EV Adoption in Last-Mile Delivery',
-        date: '2024-09-01T09:00:00Z',
-        summary: 'The funding will be used to double the fleet size, enhance the proprietary IoT technology for better vehicle management, and expand operations to five more cities by the end of 2025.',
-        link: '#',
-    },
-    {
-        id: 'pr3',
-        title: 'RoAd RoBo’s Partners with Major Food Delivery Platforms',
-        date: '2024-07-20T11:30:00Z',
-        summary: 'In a strategic partnership, RoAd RoBo’s will now offer exclusive, highly-subsidized electric scooter rental plans for delivery executives associated with top food delivery aggregators, reducing their operational costs and carbon emissions.',
-        link: '#',
-    }
+  {
+    id: 'pr1',
+    title: 'RoAd RoBo’s Launches in Chennai and Hyderabad, Expanding its Green Footprint',
+    date: '2024-10-15T10:00:00Z',
+    summary: 'SebChris Mobility today announced the expansion of its popular electric scooter rental service, RoAd RoBo’s, to two new major metropolitan areas: Chennai and Hyderabad. This move marks a significant step in the company’s mission to provide sustainable last-mile logistics solutions across India.',
+    link: '#',
+  },
+  {
+    id: 'pr2',
+    title: 'SebChris Mobility Secures Seed Funding to Accelerate EV Adoption in Last-Mile Delivery',
+    date: '2024-09-01T09:00:00Z',
+    summary: 'The funding will be used to double the fleet size, enhance the proprietary IoT technology for better vehicle management, and expand operations to five more cities by the end of 2025.',
+    link: '#',
+  },
+  {
+    id: 'pr3',
+    title: 'RoAd RoBo’s Partners with Major Food Delivery Platforms',
+    date: '2024-07-20T11:30:00Z',
+    summary: 'In a strategic partnership, RoAd RoBo’s will now offer exclusive, highly-subsidized electric scooter rental plans for delivery executives associated with top food delivery aggregators, reducing their operational costs and carbon emissions.',
+    link: '#',
+  }
 ];
 
 export const jobOpenings: JobOpening[] = [

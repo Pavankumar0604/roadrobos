@@ -4,7 +4,7 @@ export interface Bike {
   id: number;
   name: string;
   images: string[];
-  type: 'Scooter' | 'Geared' | 'Electric' | 'Superbike';
+  type: 'Scooter' | 'Fuel' | 'Electric' | 'Superbike';
   specs: {
     cc: string;
     transmission: string;
@@ -28,6 +28,7 @@ export interface Bike {
   excessKmCharge: number;
   deposit: number;
   availability: AvailabilityStatus;
+  colorVariants?: { colorName: string; imageIndex: number }[];
 }
 
 export interface FAQItem {
@@ -49,21 +50,60 @@ export interface SearchParams {
   city: string;
 }
 
+// Company Information Constants
+export const COMPANY_INFO = {
+  name: "RoAd RoBo's - Bike Rentals",
+  address: "13 & 14, Horamavu Agara Village, \nKalyan Nagar,Babusapalya,\n Bengaluru - 560043",
+  gstNumber: "29ABRCS0299J1ZH"
+};
+
+// Rider Information for enhanced booking form
+export interface RiderInformation {
+  // Application & Identity
+  applicationNumber: string;
+  userName: string;
+  idProof: 'Aadhaar Card' | 'PAN Card';
+  idNumber: string;
+
+  // Contact Information
+  contactNumber: string;
+  alternateNumber?: string;
+  emailId: string;
+
+  // Address Information
+  localAddress: string;
+  localAddressProof?: string;
+  permanentAddress: string;
+  permanentAddressProof: string;
+
+  // Optional fields
+  deliveryExecutive?: boolean;
+  deliveryId?: string;
+
+  // Rental Period
+  rentalPeriodCommencementDate: string;
+  startedDate: string;
+  returnDate: string;
+
+  // Vehicle Details
+  vehicleName: string;
+  vehicleType: string;
+  vehicleCategory: string;
+  vehicleColor: string;
+  vehicleIdNumber: string;
+}
+
 export interface BookingDetails {
-    bookingId: string;
-    bike: Bike;
-    searchParams: SearchParams;
-    user: {
-        name: string;
-        email: string;
-        phone: string;
-    };
-    addons: {
-        helmet: boolean;
-        insurance: boolean;
-    };
-    totalFare: number;
-    transactionId?: string;
+  bookingId: string;
+  bike: Bike;
+  searchParams: SearchParams;
+  user: RiderInformation;
+  addons: {
+    helmet: boolean;
+    insurance: boolean;
+  };
+  totalFare: number;
+  transactionId?: string;
 }
 
 export interface Offer {

@@ -23,6 +23,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
     const [activeTariff, setActiveTariff] = useState<TariffType>('Daily');
     const [activeBikeType, setActiveBikeType] = useState<typeof BIKE_TYPES[number]>('All');
     const [sortBy, setSortBy] = useState('price-asc');
+    const [selectedImageIndexes, setSelectedImageIndexes] = useState<Record<number, number>>({});
 
     const displayedBikes = useMemo(() => {
         let filtered = [...bikes];
@@ -32,7 +33,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
         }
 
         const tariffKey = TARIFF_KEY_MAP[activeTariff];
-        
+
         filtered.sort((a, b) => {
             if (a.availability === 'Coming Soon') return 1;
             if (b.availability === 'Coming Soon') return -1;
@@ -42,14 +43,14 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
             if (sortBy === 'price-desc') return priceB - priceA;
             return 0;
         });
-        
+
         return filtered;
     }, [activeTariff, activeBikeType, sortBy, bikes]);
 
     const getTariffDetails = (bike: Bike) => {
         const tariffKey = TARIFF_KEY_MAP[activeTariff];
         const kmLimitKey = TARIFF_KEY_MAP[activeTariff];
-        
+
         let price = bike.price[tariffKey];
         let priceUnit = `/${tariffKey}`;
         if (activeTariff === 'Hourly') priceUnit = '/hr';
@@ -60,12 +61,23 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
 
         return { price, priceUnit, kmLimit, kmUnit };
     };
-    
+
     const pricingFaqs = [
         { q: 'What happens if I exceed the kilometre limit?', a: 'An excess charge per kilometer, as mentioned in the tariff table, will be applicable for every extra kilometer you ride.' },
         { q: 'Can I extend my rental beyond the booked period?', a: 'Yes, extensions are possible subject to availability. Please contact our support team to extend your booking and make the necessary payment.' },
         { q: 'When is the deposit refunded?', a: 'The security deposit is refunded to your original payment method within 5-7 business days after the bike is returned and inspected for damages.' },
     ];
+
+    const handleColorSelect = (bikeId: number, imageIndex: number) => {
+        setSelectedImageIndexes(prev => ({ ...prev, [bikeId]: imageIndex }));
+    };
+
+    const getDisplayImage = (bike: Bike) => {
+        if (selectedImageIndexes[bike.id] !== undefined) {
+            return bike.images[selectedImageIndexes[bike.id]];
+        }
+        return bike.images[0];
+    };
 
     return (
         <section id="pricing" className="py-20 bg-accent">
@@ -76,10 +88,10 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
                     <p className="mt-3 text-lg text-gray-600">Transparent bike rental fares in {city} – no hidden charges</p>
                     <p className="mt-4 text-xs text-gray-500">*All prices exclude taxes and fuel. Images for representation only.</p>
                 </div>
-                
+
                 {/* Intro */}
                 <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-sm mb-12">
-                     <p className="text-center text-gray-700">At RoAd RoBo’s, we believe renting a bike should be simple, affordable and flexible. Whether you need a ride for a few hours, a full day, or a whole month — choose your duration, pick your bike, and you’re good to go.</p>
+                    <p className="text-center text-gray-700">At RoAd RoBo's, we believe renting a bike should be simple, affordable and flexible. Whether you need a ride for a few hours, a full day, or a whole month — choose your duration, pick your bike, and you're good to go.</p>
                 </div>
 
                 {/* Filters */}
@@ -93,9 +105,9 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
                     </div>
                     <div className="flex items-center gap-4">
                         <select value={activeBikeType} onChange={e => setActiveBikeType(e.target.value as any)} className="bg-white border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-input-focus text-sm p-2">
-                           {BIKE_TYPES.map(type => <option key={type} value={type}>{type} Bikes</option>)}
+                            {BIKE_TYPES.map(type => <option key={type} value={type}>{type} Bikes</option>)}
                         </select>
-                         <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="bg-white border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-input-focus text-sm p-2">
+                        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="bg-white border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-input-focus text-sm p-2">
                             <option value="price-asc">Price: Low to High</option>
                             <option value="price-desc">Price: High to Low</option>
                         </select>
@@ -133,11 +145,33 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
                         <tbody>
                             {displayedBikes.map((bike, index) => {
                                 const { price, priceUnit, kmLimit, kmUnit } = getTariffDetails(bike);
+                                const displayImage = getDisplayImage(bike);
                                 return (
                                     <tr key={bike.id} className={`border-t ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                                         <td className="p-4">
                                             <div className="flex items-center gap-4">
-                                                <img src={bike.images[0]} alt={bike.name} className="h-14 w-20 object-cover rounded-md" />
+                                                <div className="flex flex-col items-center">
+                                                    <img src={displayImage} alt={bike.name} className="h-20 w-28 object-contain rounded-md" />
+                                                    {bike.colorVariants && (
+                                                        <div className="flex gap-1 mt-2 flex-wrap max-w-[80px]">
+                                                            {bike.colorVariants.map((variant) => (
+                                                                <button
+                                                                    key={variant.imageIndex}
+                                                                    onClick={() => handleColorSelect(bike.id, variant.imageIndex)}
+                                                                    className={`w-4 h-4 rounded-full border-2 transition-all hover:scale-110 ${(selectedImageIndexes[bike.id] ?? 0) === variant.imageIndex
+                                                                        ? 'border-primary ring-2 ring-primary ring-offset-1'
+                                                                        : 'border-gray-300 hover:border-gray-500'
+                                                                        }`}
+                                                                    style={{
+                                                                        background: `linear-gradient(135deg, hsl(${variant.imageIndex * 20}, 70%, 60%), hsl(${variant.imageIndex * 20 + 40}, 70%, 50%))`
+                                                                    }}
+                                                                    title={variant.colorName}
+                                                                    aria-label={`Select ${variant.colorName}`}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
                                                 <div>
                                                     <p className="font-bold text-primary">{bike.name}</p>
                                                     <p className="text-xs text-gray-500">{bike.type} | {bike.specs.cc}</p>
@@ -149,8 +183,8 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
                                         <td className="p-4 text-center">{bike.availability === 'Coming Soon' ? 'N/A' : `₹${bike.excessKmCharge}/km`}</td>
                                         <td className="p-4 text-center">{bike.availability === 'Coming Soon' ? 'N/A' : `₹${bike.deposit}`}</td>
                                         <td className="p-4">
-                                            <button 
-                                                onClick={() => onSelectBike(bike)} 
+                                            <button
+                                                onClick={() => onSelectBike(bike)}
                                                 disabled={bike.availability === 'Coming Soon'}
                                                 className="bg-primary text-white font-semibold px-4 py-2 rounded-lg hover:bg-opacity-90 transition-all text-xs whitespace-nowrap disabled:bg-gray-400 disabled:cursor-not-allowed"
                                             >
@@ -170,7 +204,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
                         <BikeCard key={bike.id} bike={bike} onSelectBike={onSelectBike} />
                     ))}
                 </div>
-                
+
                 {/* Important Notes */}
                 <div className="mt-12 bg-white p-6 rounded-xl shadow-sm">
                     <h3 className="text-lg font-heading font-extrabold uppercase tracking-widest text-primary mb-4">Important Notes</h3>
@@ -181,15 +215,15 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
                         <li><span className="font-semibold">Excess Kilometres:</span> Each booking includes a km-limit; excess kms will incur extra charges as shown above.</li>
                         <li><span className="font-semibold">Insurance & Safety:</span> A helmet is included. Optional personal insurance is available for an extra fee.</li>
                     </ul>
-                     <a href="#" className="text-sm text-primary font-semibold mt-4 inline-block hover:underline">View full terms & conditions</a>
+                    <a href="#" className="text-sm text-primary font-semibold mt-4 inline-block hover:underline">View full terms & conditions</a>
                 </div>
-                
+
                 {/* Quick FAQ */}
                 <div className="mt-12 max-w-4xl mx-auto">
                     <h3 className="text-lg font-heading font-extrabold uppercase tracking-widest text-primary mb-4 text-center">Quick Questions</h3>
                     <div className="space-y-4">
                         {pricingFaqs.map(faq => (
-                             <details key={faq.q} className="bg-white p-4 rounded-lg shadow-sm group">
+                            <details key={faq.q} className="bg-white p-4 rounded-lg shadow-sm group">
                                 <summary className="flex justify-between items-center font-medium cursor-pointer list-none">
                                     <span>{faq.q}</span>
                                     <ChevronDownIcon className="h-5 w-5 text-gray-500 transition-transform duration-300 group-open:rotate-180" />
