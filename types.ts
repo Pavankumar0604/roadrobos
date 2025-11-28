@@ -62,8 +62,8 @@ export interface RiderInformation {
   // Application & Identity
   applicationNumber: string;
   userName: string;
-  idProof: 'Aadhaar Card' | 'PAN Card';
-  idNumber: string;
+  aadhaarDocument?: string; // File name or base64 data
+  panCardDocument?: string; // File name or base64 data
 
   // Contact Information
   contactNumber: string;

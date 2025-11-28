@@ -77,8 +77,8 @@ const BookingPage: React.FC<BookingPageProps> = ({ bookingDetails, onConfirmBook
     localAddressProof: '',
     permanentAddress: '',
     permanentAddressProof: 'Aadhaar Card',
-    idProof: 'Aadhaar Card',
-    idNumber: '',
+    aadhaarDocument: '',
+    panCardDocument: '',
     deliveryExecutive: false,
     deliveryId: '',
     rentalPeriodCommencementDate: searchParams.pickupDate,
@@ -95,6 +95,8 @@ const BookingPage: React.FC<BookingPageProps> = ({ bookingDetails, onConfirmBook
   const [loadingAppNumber, setLoadingAppNumber] = useState(false);
 
   const [document, setDocument] = useState<File | null>(null);
+  const [aadhaarFile, setAadhaarFile] = useState<File | null>(null);
+  const [panCardFile, setPanCardFile] = useState<File | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -110,13 +112,27 @@ const BookingPage: React.FC<BookingPageProps> = ({ bookingDetails, onConfirmBook
   useEffect(() => {
     if (step === 1 && !applicationNumber && !loadingAppNumber) {
       setLoadingAppNumber(true);
-      // Generate application number locally: RRB-[timestamp]-[random4digits]
-      const timestamp = Date.now();
-      const random4Digits = Math.floor(1000 + Math.random() * 9000);
-      const generatedAppNumber = `RRB-${timestamp}-${random4Digits}`;
 
-      setApplicationNumber(generatedAppNumber);
-      setRiderInfo(prev => ({ ...prev, applicationNumber: generatedAppNumber }));
+      // Generate application number locally with sequential increment
+      // Format: RR'S0054 (RR'S + 4 digits)
+      const STORAGE_KEY = 'roadrobos_last_app_number';
+      const STARTING_NUMBER = 53; // Start before 54 so first one is 54
+
+      let nextNumber = STARTING_NUMBER + 1;
+      const storedLastNumber = localStorage.getItem(STORAGE_KEY);
+
+      if (storedLastNumber) {
+        nextNumber = parseInt(storedLastNumber, 10) + 1;
+      }
+
+      // Save the new number
+      localStorage.setItem(STORAGE_KEY, nextNumber.toString());
+
+      // Format: Pad with zeros to 4 digits
+      const formattedNumber = `RR'S${nextNumber.toString().padStart(4, '0')}`;
+
+      setApplicationNumber(formattedNumber);
+      setRiderInfo(prev => ({ ...prev, applicationNumber: formattedNumber }));
       setLoadingAppNumber(false);
     }
   }, [step, applicationNumber, loadingAppNumber]);
@@ -183,8 +199,8 @@ const BookingPage: React.FC<BookingPageProps> = ({ bookingDetails, onConfirmBook
     if (!riderInfo.emailId || !/\S+@\S+\.\S+/.test(riderInfo.emailId)) newErrors.emailId = 'A valid email is required.';
     if (!riderInfo.localAddress) newErrors.localAddress = 'Local address is required.';
     if (!riderInfo.permanentAddress) newErrors.permanentAddress = 'Permanent address is required.';
-    if (!riderInfo.idProof) newErrors.idProof = 'ID proof type is required.';
-    if (!riderInfo.idNumber) newErrors.idNumber = 'ID number is required.';
+    if (!aadhaarFile) newErrors.aadhaarDocument = 'Aadhaar card document is required.';
+    if (!panCardFile) newErrors.panCardDocument = 'PAN card document is required.';
     if (!riderInfo.vehicleIdNumber) newErrors.vehicleIdNumber = 'Vehicle ID number is required.';
     if (!document) newErrors.document = 'Please upload your driving licence.';
     if (!termsAccepted) newErrors.terms = 'You must accept the terms and conditions.';
@@ -211,8 +227,10 @@ const BookingPage: React.FC<BookingPageProps> = ({ bookingDetails, onConfirmBook
   };
 
   const inputClasses = (hasError: boolean) =>
-    `mt-1 block w-full p-3 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-input-focus ${hasError ? 'border-error' : 'border-input'}`;
+    `mt-1 block w-full p-3 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-input-focus disabled:bg-gray-100 disabled:cursor-not-allowed ${hasError ? 'border-error' : 'border-input'}`;
 
+  const selectedBike = bikes.find(b => b.name === riderInfo.vehicleName);
+  const isVehicleSelected = !!selectedBike;
 
   return (
     <>
@@ -456,30 +474,130 @@ const BookingPage: React.FC<BookingPageProps> = ({ bookingDetails, onConfirmBook
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="idProof" className="block text-sm font-medium text-gray-700">ID Proof *</label>
-                    <select
-                      id="idProof"
-                      value={riderInfo.idProof || 'Aadhaar Card'}
-                      onChange={e => handleRiderInfoChange('idProof', e.target.value as 'Aadhaar Card' | 'PAN Card')}
-                      className={inputClasses(!!errors.idProof)}
-                    >
-                      <option value="Aadhaar Card">Aadhaar Card</option>
-                      <option value="PAN Card">PAN Card</option>
-                    </select>
-                    {errors.idProof && <p className="text-red-500 text-xs mt-1">{errors.idProof}</p>}
+                {/* ID Documents Upload Section */}
+                <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-500 rounded-lg mb-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    <h4 className="font-semibold text-yellow-900">Secure Document Verification</h4>
                   </div>
-                  <div>
-                    <label htmlFor="idNumber" className="block text-sm font-medium text-gray-700">ID Number *</label>
-                    <input
-                      type="text"
-                      id="idNumber"
-                      value={riderInfo.idNumber || ''}
-                      onChange={e => handleRiderInfoChange('idNumber', e.target.value)}
-                      className={inputClasses(!!errors.idNumber)}
-                    />
-                    {errors.idNumber && <p className="text-red-500 text-xs mt-1">{errors.idNumber}</p>}
+                  <p className="text-sm text-yellow-800">Please upload both Aadhaar and PAN card documents for identity verification and security purposes.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Aadhaar Card Upload */}
+                  <div className="space-y-3">
+                    <label htmlFor="aadhaar" className="block text-sm font-medium text-gray-700 mb-2">Upload Aadhaar Card *</label>
+                    <div className={`relative flex justify-center px-4 py-6 border-2 ${errors.aadhaarDocument ? 'border-red-500' : 'border-gray-300'} border-dashed rounded-xl hover:border-primary transition-all duration-300 bg-gradient-to-br from-white to-gray-50`}>
+                      <div className="space-y-2 text-center w-full">
+                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <div className="flex flex-col items-center gap-2">
+                          <label htmlFor="aadhaar-upload" className="relative cursor-pointer bg-white px-4 py-2 rounded-lg font-medium text-primary hover:text-white hover:bg-primary border border-primary transition-all duration-300 shadow-sm hover:shadow-md">
+                            <span>{aadhaarFile ? aadhaarFile.name : '📁 Choose File'}</span>
+                            <input
+                              id="aadhaar-upload"
+                              name="aadhaar-upload"
+                              type="file"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              className="sr-only"
+                              onChange={e => {
+                                const file = e.target.files ? e.target.files[0] : null;
+                                setAadhaarFile(file);
+                                if (file) {
+                                  handleRiderInfoChange('aadhaarDocument', file.name);
+                                }
+                              }}
+                            />
+                          </label>
+                          <span className="text-xs text-gray-400">or</span>
+                          <label htmlFor="aadhaar-camera" className="group relative cursor-pointer bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 px-5 py-2.5 rounded-lg font-semibold text-white hover:from-purple-600 hover:via-pink-600 hover:to-red-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                            <svg className="w-5 h-5 relative z-10 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className="relative z-10">📸 Capture Photo</span>
+                            <input
+                              id="aadhaar-camera"
+                              name="aadhaar-camera"
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              className="sr-only"
+                              onChange={e => {
+                                const file = e.target.files ? e.target.files[0] : null;
+                                setAadhaarFile(file);
+                                if (file) {
+                                  handleRiderInfoChange('aadhaarDocument', file.name);
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">PDF, JPG, PNG (max 10MB)</p>
+                      </div>
+                    </div>
+                    {errors.aadhaarDocument && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><span>⚠️</span>{errors.aadhaarDocument}</p>}
+                  </div>
+
+                  {/* PAN Card Upload */}
+                  <div className="space-y-3">
+                    <label htmlFor="pancard" className="block text-sm font-medium text-gray-700 mb-2">Upload PAN Card *</label>
+                    <div className={`relative flex justify-center px-4 py-6 border-2 ${errors.panCardDocument ? 'border-red-500' : 'border-gray-300'} border-dashed rounded-xl hover:border-primary transition-all duration-300 bg-gradient-to-br from-white to-gray-50`}>
+                      <div className="space-y-2 text-center w-full">
+                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <div className="flex flex-col items-center gap-2">
+                          <label htmlFor="pancard-upload" className="relative cursor-pointer bg-white px-4 py-2 rounded-lg font-medium text-primary hover:text-white hover:bg-primary border border-primary transition-all duration-300 shadow-sm hover:shadow-md">
+                            <span>{panCardFile ? panCardFile.name : '📁 Choose File'}</span>
+                            <input
+                              id="pancard-upload"
+                              name="pancard-upload"
+                              type="file"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              className="sr-only"
+                              onChange={e => {
+                                const file = e.target.files ? e.target.files[0] : null;
+                                setPanCardFile(file);
+                                if (file) {
+                                  handleRiderInfoChange('panCardDocument', file.name);
+                                }
+                              }}
+                            />
+                          </label>
+                          <span className="text-xs text-gray-400">or</span>
+                          <label htmlFor="pancard-camera" className="group relative cursor-pointer bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 px-5 py-2.5 rounded-lg font-semibold text-white hover:from-purple-600 hover:via-pink-600 hover:to-red-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2 overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                            <svg className="w-5 h-5 relative z-10 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className="relative z-10">📸 Capture Photo</span>
+                            <input
+                              id="pancard-camera"
+                              name="pancard-camera"
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              className="sr-only"
+                              onChange={e => {
+                                const file = e.target.files ? e.target.files[0] : null;
+                                setPanCardFile(file);
+                                if (file) {
+                                  handleRiderInfoChange('panCardDocument', file.name);
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">PDF, JPG, PNG (max 10MB)</p>
+                      </div>
+                    </div>
+                    {errors.panCardDocument && <p className="text-red-500 text-xs mt-1 flex items-center gap-1"><span>⚠️</span>{errors.panCardDocument}</p>}
                   </div>
                 </div>
 
@@ -566,7 +684,17 @@ const BookingPage: React.FC<BookingPageProps> = ({ bookingDetails, onConfirmBook
                     <select
                       id="vehicleName"
                       value={riderInfo.vehicleName || ''}
-                      onChange={e => handleRiderInfoChange('vehicleName', e.target.value)}
+                      onChange={e => {
+                        const newName = e.target.value;
+                        handleRiderInfoChange('vehicleName', newName);
+                        const bike = bikes.find(b => b.name === newName);
+                        if (bike) {
+                          const type = bike.type === 'Electric' ? 'Electric' : 'Fuel';
+                          handleRiderInfoChange('vehicleType', type);
+                        } else {
+                          handleRiderInfoChange('vehicleType', '');
+                        }
+                      }}
                       className={inputClasses(false)}
                     >
                       <option value="">Select a vehicle</option>
@@ -582,6 +710,7 @@ const BookingPage: React.FC<BookingPageProps> = ({ bookingDetails, onConfirmBook
                       value={riderInfo.vehicleType || ''}
                       onChange={e => handleRiderInfoChange('vehicleType', e.target.value)}
                       className={inputClasses(false)}
+                      disabled={isVehicleSelected}
                     >
                       <option value="">Select type</option>
                       <option value="Electric">Electric</option>
