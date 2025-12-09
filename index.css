@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    /* Primary Colors */
+    --color-primary: #084C3E;
+    --color-primary-light: #22C55E;
+    --color-primary-dark: #052D24;
+
+    /* Secondary Colors */
+    --color-secondary: #FF6347;
+    --color-secondary-light: #FFB6A3;
+
+    /* Warm accent */
+    --color-warm: #FFA500;
+
+    /* Background & Surfaces */
+    --color-accent: #F9FAFB;
+    --color-card: #E5E7EB;
+    --color-input: #D1D5DB;
+    --color-input-focus: #22C55E;
+    --color-error: #EF4444;
+
+    /* Text colors */
+    --color-text-body: #1F2937;
+    --color-text-muted: #6B7280;
+
+    /* Shadows */
+    --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-card-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+    /* Border Radius */
+    --radius-card: 0.5rem;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Custom checkbox styling */
+input[type="checkbox"] {
+    accent-color: var(--color-primary);
+}

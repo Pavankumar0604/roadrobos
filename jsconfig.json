@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "checkJs": false,
+        "module": "commonjs",
+        "target": "ES2022"
+    },
+    "exclude": [
+        "database",
+        "server",
+        "node_modules",
+        "dist",
+        "*.config.js",
+        "*.config.cjs"
+    ]
+}

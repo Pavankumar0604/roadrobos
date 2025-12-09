@@ -1,0 +1,527 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+const express = require('express');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
+const cors = require('cors');
+
+// Database imports
+const { healthCheck, closePool } = require('./database/config.cjs');
+const { User, Bike, Booking, RiderInfo, Transaction, Offer, Enquiry, Review, Location, Employee, Application, SiteContent, AdminUser } = require('./database/models.cjs');
+const {
+  signUp,
+  signIn,
+  signOut,
+  resetPassword,
+  verifyUserToken,
+  isAdmin
+} = require('./database/auth.cjs');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+
+// Serve static files from the React app build
+app.use(express.static(path.join(__dirname, '..', 'dist')));
+
+// Initialize Razorpay
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
+// ============================================================================
+// HEALTH CHECK
+// ============================================================================
+
+app.get('/api/health', async (req, res) => {
+  try {
+    const dbHealthy = await healthCheck();
+    res.json({
+      status: 'ok',
+      database: dbHealthy ? 'connected' : 'disconnected',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      database: 'error',
+      error: error.message
+    });
+  }
+});
+
+// ============================================================================
+// AUTHENTICATION ENDPOINTS (MySQL)
+// ============================================================================
+
+// Sign Up
+app.post('/api/auth/signup', async (req, res) => {
+  try {
+    const { email, password, name, phone } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    const result = await signUp(email, password, { name, phone });
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+
+    res.json({
+      success: true,
+      user: result.user,
+      token: result.token
+    });
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(500).json({ error: 'Server error during signup' });
+  }
+});
+
+// Sign In
+app.post('/api/auth/signin', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    const result = await signIn(email, password);
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+
+    res.json({
+      success: true,
+      user: result.user,
+      token: result.token
+    });
+  } catch (error) {
+    console.error('Sign in error:', error);
+    res.status(500).json({ error: 'Server error during sign in' });
+  }
+});
+
+// Sign Out
+app.post('/api/auth/signout', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+
+    if (!token) {
+      return res.status(400).json({ error: 'No token provided' });
+    }
+
+    const result = await signOut(token);
+    res.json(result);
+  } catch (error) {
+    console.error('Sign out error:', error);
+    res.status(500).json({ error: 'Server error during sign out' });
+  }
+});
+
+// Reset Password
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const result = await resetPassword(email);
+    res.json(result);
+    const token = req.headers.authorization?.replace('Bearer ', '');
+
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const { success, user, error } = await verifyUserToken(token);
+
+    if (!success) {
+      return res.status(401).json({ error });
+    }
+
+    res.json({ user });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update user profile
+app.put('/api/user/profile', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const { success, user, error } = await verifyUserToken(token);
+
+    if (!success) {
+      return res.status(401).json({ error });
+    }
+
+    await User.update(user.id, req.body);
+    const updatedUser = await User.getById(user.id);
+
+    res.json({ success: true, user: updatedUser });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ============================================================================
+// BIKE ENDPOINTS
+// ============================================================================
+
+// Get all bikes
+app.get('/api/bikes', async (req, res) => {
+  try {
+    const { type, availability } = req.query;
+    const bikes = await Bike.getAll({ type, availability });
+
+    // Get images for each bike
+    const bikesWithImages = await Promise.all(
+      bikes.map(async (bike) => {
+        const fullBike = await Bike.getWithImages(bike.id);
+        return fullBike;
+      })
+    );
+
+    res.json(bikesWithImages);
+  } catch (error) {
+    console.error('Get bikes error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get bike by ID
+app.get('/api/bikes/:id', async (req, res) => {
+  try {
+    const bike = await Bike.getWithImages(parseInt(req.params.id));
+
+    if (!bike) {
+      return res.status(404).json({ error: 'Bike not found' });
+    }
+
+    res.json(bike);
+  } catch (error) {
+    console.error('Get bike error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Create bike
+app.post('/api/bikes', async (req, res) => {
+  try {
+    const bikeId = await Bike.create(req.body);
+    res.json({ success: true, id: bikeId });
+  } catch (error) {
+    console.error('Create bike error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update bike
+app.put('/api/bikes/:id', async (req, res) => {
+  try {
+    await Bike.update(req.params.id, req.body);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Update bike error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Delete bike
+app.delete('/api/bikes/:id', async (req, res) => {
+  try {
+    await Bike.delete(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Delete bike error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ============================================================================
+// BOOKING ENDPOINTS
+// ============================================================================
+
+// Create booking
+app.post('/api/bookings', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+
+    if (!token) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { success, user, error } = await verifyUserToken(token);
+
+    if (!success) {
+      return res.status(401).json({ error });
+    }
+
+    // Generate booking ID
+    const bookingId = `BK${Date.now()}`;
+
+    // Create or get rider info
+    let riderInfoId;
+    if (req.body.riderInfo) {
+      riderInfoId = await RiderInfo.create({
+        ...req.body.riderInfo,
+        user_id: user.id
+      });
+    }
+
+    // Create booking
+    const booking = await Booking.create({
+      booking_id: bookingId,
+      user_id: user.id,
+      rider_info_id: riderInfoId,
+      ...req.body.bookingDetails
+    });
+
+    res.json({
+      success: true,
+      booking_id: bookingId,
+      id: booking
+    });
+  } catch (error) {
+    console.error('Create booking error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get user bookings
+app.get('/api/bookings/my', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+
+    if (!token) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { success, user, error } = await verifyUserToken(token);
+
+    if (!success) {
+      return res.status(401).json({ error });
+    }
+
+    const bookings = await Booking.getByUserId(user.id);
+    res.json(bookings);
+  } catch (error) {
+    console.error('Get bookings error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get booking by ID
+app.get('/api/bookings/:id', async (req, res) => {
+  try {
+    const booking = await Booking.getById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+      // Dashboard Stats
+      app.get('/api/admin/dashboard-stats', async (req, res) => {
+        try {
+          // In a real app, optimize these queries with count(*)
+          // For prototype, we'll just return placeholders or fetch all
+          const bookings = await Booking.getByUserId('all', 1000).catch(() => []);
+
+          res.json({
+            totalBookings: 1250, // Placeholder
+            fleetUtilization: 85, // Placeholder
+            newPartners: 58 // Placeholder
+          });
+        } catch (error) {
+          res.status(500).json({ error: 'Server error' });
+        }
+      });
+
+      // Offers
+      app.get('/api/offers', async (req, res) => {
+        const offers = await Offer.getAll();
+        res.json(offers);
+      });
+      app.post('/api/offers', async (req, res) => {
+        await Offer.create(req.body);
+        res.json({ success: true });
+      });
+      app.put('/api/offers/:id', async (req, res) => {
+        await Offer.update(req.params.id, req.body);
+        res.json({ success: true });
+      });
+      app.delete('/api/offers/:id', async (req, res) => {
+        await Offer.delete(req.params.id);
+        res.json({ success: true });
+      });
+
+      // Enquiries
+      app.get('/api/enquiries', async (req, res) => {
+        const enquiries = await Enquiry.getAll();
+        res.json(enquiries);
+      });
+      app.post('/api/enquiries', async (req, res) => {
+        await Enquiry.create(req.body);
+        res.json({ success: true });
+      });
+      app.delete('/api/enquiries/:id', async (req, res) => {
+        await Enquiry.delete(req.params.id);
+        res.json({ success: true });
+      });
+
+      // Reviews
+      app.get('/api/reviews', async (req, res) => {
+        const reviews = await Review.getAll();
+        res.json(reviews);
+      });
+      app.post('/api/reviews', async (req, res) => {
+        await Review.create(req.body);
+        res.json({ success: true });
+      });
+      app.put('/api/reviews/:id', async (req, res) => {
+        await Review.updateStatus(req.params.id, req.body.status);
+        res.json({ success: true });
+      });
+      app.delete('/api/reviews/:id', async (req, res) => {
+        await Review.delete(req.params.id);
+        res.json({ success: true });
+      });
+
+      // Locations
+      app.get('/api/locations', async (req, res) => {
+        const locations = await Location.getAll();
+        res.json(locations);
+      });
+      app.post('/api/locations', async (req, res) => {
+        await Location.create(req.body.name);
+        res.json({ success: true });
+      });
+      app.put('/api/locations/:name', async (req, res) => {
+        await Location.update(req.params.name, req.body.name);
+        res.json({ success: true });
+      });
+      app.delete('/api/locations/:name', async (req, res) => {
+        await Location.delete(req.params.name);
+        res.json({ success: true });
+      });
+
+      // Employees
+      app.get('/api/employees', async (req, res) => {
+        const employees = await Employee.getAll();
+        res.json(employees);
+      });
+      app.post('/api/employees', async (req, res) => {
+        await Employee.create(req.body);
+        res.json({ success: true });
+      });
+      app.put('/api/employees/:id', async (req, res) => {
+        await Employee.update(req.params.id, req.body);
+        res.json({ success: true });
+      });
+      app.delete('/api/employees/:id', async (req, res) => {
+        await Employee.delete(req.params.id);
+        res.json({ success: true });
+      });
+
+      // Applications
+      app.get('/api/applications', async (req, res) => {
+        const applications = await Application.getAll();
+        res.json(applications);
+      });
+      app.post('/api/applications', async (req, res) => {
+        await Application.create(req.body);
+        res.json({ success: true });
+      });
+      app.put('/api/applications/:id', async (req, res) => {
+        await Application.updateStatus(req.params.id, req.body.status);
+        res.json({ success: true });
+      });
+
+      // Site Content
+      app.get('/api/site-content', async (req, res) => {
+        const content = await SiteContent.get();
+        res.json(content || {});
+      });
+      app.post('/api/site-content', async (req, res) => {
+        await SiteContent.update(req.body);
+        res.json({ success: true });
+      });
+
+      // Admin Users
+      app.get('/api/admin/users', async (req, res) => {
+        const users = await AdminUser.getAll();
+        res.json(users);
+      });
+
+      // ============================================================================
+      // UTILITY ENDPOINTS
+      // ============================================================================
+
+      // Generate Application Number
+      let appNumberCounter = 54;
+
+      app.get('/api/generate-application-number', (req, res) => {
+        const paddedNumber = String(appNumberCounter++).padStart(4, '0');
+        const appNumber = `RR'S${paddedNumber}`;
+        res.json({ applicationNumber: appNumber });
+      });
+
+      // ============================================================================
+      // FALLBACK TO REACT APP
+      // ============================================================================
+
+      app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
+      });
+
+      // ============================================================================
+      // SERVER START
+      // ============================================================================
+
+      const server = app.listen(PORT, async () => {
+        console.log(`\n🚀 Server running on port ${PORT}`);
+        console.log(`   Frontend: http://localhost:${PORT}`);
+        console.log(`   API: http://localhost:${PORT}/api`);
+        console.log(`   Health: http://localhost:${PORT}/api/health\n`);
+
+        // Check database connection
+        const dbHealthy = await healthCheck();
+        if (dbHealthy) {
+          console.log('✅ Database connection established\n');
+        } else {
+          console.log('⚠️  Database connection failed - check your .env configuration\n');
+        }
+      });
+
+      // Graceful shutdown
+      process.on('SIGTERM', async () => {
+        console.log('SIGTERM signal received: closing HTTP server');
+        server.close(async () => {
+          await closePool();
+          console.log('HTTP server closed');
+        });
+      });
+
+      process.on('SIGINT', async () => {
+        console.log('\nSIGINT signal received: closing HTTP server');
+        server.close(async () => {
+          await closePool();
+          console.log('HTTP server closed');
+          process.exit(0);
+        });
+      });
