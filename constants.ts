@@ -162,58 +162,6 @@ export const bikes: Bike[] = [
     deposit: 2000,
     availability: 'Coming Soon',
   },
-  // --- Service Demo Bikes ---
-  {
-    id: 901,
-    name: 'Ather 450X (Demo Pending)',
-    images: bikeImages.ather450x,
-    type: 'Electric',
-    specs: { cc: 'Electric', transmission: 'Automatic' },
-    price: { hour: 40, day: 443, week: 3100, month: 6999, quarterly: 35000, yearly: 159600 },
-    minBookingDur: { hour: 10, day: 1 },
-    kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
-    excessKmCharge: 4,
-    deposit: 2000,
-    availability: 'Maintenance',
-    service_status: 'pending',
-    healthScore: 45,
-    technicianAvatar: 'https://i.pravatar.cc/150?u=tech1',
-    technicianName: 'Rajesh K.',
-  },
-  {
-    id: 902,
-    name: 'Royal Enfield (Demo Active)',
-    images: bikeImages.royalenfieldclassic,
-    type: 'Gear',
-    specs: { cc: '350cc', transmission: 'Manual' },
-    price: { hour: 120, day: 1800, week: 10000, month: 6999, quarterly: 35000, yearly: 288000 },
-    minBookingDur: { hour: 10, day: 1 },
-    kmLimit: { hour: 10, day: 150, week: 900, month: 3000 },
-    excessKmCharge: 8,
-    deposit: 2500,
-    availability: 'Service',
-    service_status: 'in_progress',
-    healthScore: 78,
-    technicianAvatar: 'https://i.pravatar.cc/150?u=tech2',
-    technicianName: 'Suresh M.',
-  },
-  {
-    id: 903,
-    name: 'Honda Activa (Demo Done)',
-    images: bikeImages.hondaactiva,
-    type: 'Scooter',
-    specs: { cc: '110cc', transmission: 'Automatic' },
-    price: { hour: 40, day: 443, week: 3100, month: 13300, quarterly: 39900, yearly: 159600 },
-    minBookingDur: { hour: 10, day: 1 },
-    kmLimit: { hour: 10, day: 100, week: 600, month: 2000 },
-    excessKmCharge: 4,
-    deposit: 1000,
-    availability: 'Service',
-    service_status: 'completed',
-    healthScore: 100,
-    technicianAvatar: 'https://i.pravatar.cc/150?u=tech1',
-    technicianName: 'Rajesh K.',
-  },
 ];
 
 
@@ -431,21 +379,6 @@ export const offersData: Offer[] = [
     usageLimitPerUser: 1,
     totalUses: 98,
   },
-  {
-    id: 'o_demo_1610',
-    title: 'Demo 100% OFF (Test)',
-    type: 'app',
-    code: 'demo@1610',
-    discountPercent: 100,
-    validityDate: '2099-12-31',
-    applicableCities: ['All'],
-    minBooking: '0',
-    imagePlaceholder: 'https://placehold.co/600x400?text=100%25+OFF',
-    descriptionBullets: ['100% Discount for testing', 'Only Platform Fee Applicable', 'Unlimited Usage'],
-    status: 'Active',
-    usageLimitPerUser: 999999,
-    totalUses: 0,
-  },
 ];
 
 export const caseStudies: CaseStudy[] = [
@@ -646,5 +579,5 @@ export const initialApplications: Application[] = [
     status: 'Under Review',
   },
 ];
-// Razorpay Public Key for Frontend Use (LIVE MODE)
-export const RAZORPAY_KEY_ID = 'rzp_live_RmExOlKUjexNBq';
+// Razorpay Public Key for Frontend Use — loaded from environment variable
+export const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || '';

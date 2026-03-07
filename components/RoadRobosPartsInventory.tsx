@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { SearchIcon } from './icons/Icons';
-import { PART_CATEGORIES, type EevaEcoPart, type PartCategory } from '../data/eevaPartsData';
+import { PART_CATEGORIES, type EevaEcoPart, type PartCategory, EEVA_ECO_PARTS } from '../data/eevaPartsData';
 import api from '../src/api';
 
 // ─── Sub-View Types ───
@@ -22,33 +22,21 @@ const healthStyle: Record<string, { bg: string; text: string; dot: string; label
 
 // ─── Main Component ───
 const RoadRobosPartsInventory: React.FC<{ search?: string; filterCat?: PartCategory | 'ALL' }> = ({ search = '', filterCat = 'ALL' }) => {
-    const [parts, setParts] = useState<EevaEcoPart[]>([]);
+    const [parts, setParts] = useState<EevaEcoPart[]>(EEVA_ECO_PARTS);
     const [view, setView] = useState<PartsView>('grid');
     const [selectedPart, setSelectedPart] = useState<EevaEcoPart | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
+    // Using local data as requested, API call removed
     useEffect(() => {
-        fetchParts();
+        setParts(EEVA_ECO_PARTS);
     }, []);
-
-    const fetchParts = async () => {
-        setIsLoading(true);
-        try {
-            const data = await api.admin.getPartsInventory();
-            setParts(data);
-        } catch (error) {
-            console.error('Failed to fetch parts:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const filtered = useMemo(() => parts.filter(p => {
         const matchCat = filterCat === 'ALL' || p.category === filterCat;
         const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase());
         return matchCat && matchSearch;
     }), [parts, filterCat, search]);
-
     const alertParts = useMemo(() => parts.filter(p => p.stock.current <= p.stock.min), [parts]);
 
     const totalInventoryValue = useMemo(() => parts.reduce((acc, p) => acc + (p.price * 1.18) * p.stock.current, 0), [parts]);
@@ -144,7 +132,16 @@ const RoadRobosPartsInventory: React.FC<{ search?: string; filterCat?: PartCateg
                             </div>
                         ) : (
                             filtered.map(part => (
-                                <PartCard key={part.srNo} part={part} onSelect={() => setSelectedPart(part)} />
+                                <PartCard
+                                    key={part.srNo}
+                                    part={part}
+                                    onSelect={() => setSelectedPart(part)}
+                                    onUpdate={(newStock) => {
+                                        setParts(prev => prev.map(p =>
+                                            p.srNo === part.srNo ? { ...p, stock: { ...p.stock, current: newStock } } : p
+                                        ));
+                                    }}
+                                />
                             ))
                         )}
                     </div>
@@ -333,45 +330,72 @@ const RoadRobosPartsInventory: React.FC<{ search?: string; filterCat?: PartCateg
 };
 
 // ─── Part Card ───
-const PartCard: React.FC<{ part: EevaEcoPart; onSelect: () => void }> = ({ part, onSelect }) => {
+const PartCard: React.FC<{
+    part: EevaEcoPart;
+    onSelect: () => void;
+    onUpdate?: (newStock: number) => void;
+}> = ({ part, onSelect }) => {
     const health = stockHealth(part);
-    const hs = healthStyle[health];
-    const pct = Math.round((part.stock.current / part.stock.max) * 100);
+    const pct = Math.min(100, Math.round((part.stock.current / part.stock.max) * 100));
     const catInfo = PART_CATEGORIES.find(c => c.id === part.category);
 
     return (
-        <div onClick={onSelect} className={`group cursor-pointer bg-white rounded-lg border transition-all duration-300 overflow-hidden flex flex-col hover:shadow-card-hover ${part.highValue ? 'border-secondary/40' : 'border-input/30'}`}>
-            <div className="p-4 flex-1">
-                <div className="flex justify-between items-start mb-3">
-                    <span className="text-[9px] font-mono text-text-muted">SR-{String(part.srNo).padStart(2, '0')}</span>
-                    <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-accent text-text-body border border-input/10 flex items-center gap-1">
-                        <span className="w-1 h-1 rounded-full" style={{ backgroundColor: catInfo?.color }} />
-                        {catInfo?.label}
-                    </span>
-                </div>
-
-                <h4 className="text-sm font-bold text-text-body mb-1 flex items-center gap-1.5">
-                    {part.highValue && <span className="text-secondary">⚡</span>}
-                    {part.name}
-                </h4>
-                <div className="mb-4">
-                    <p className="text-xl font-bold text-primary tracking-tight leading-none">₹{Math.round(part.price * 1.18).toLocaleString('en-IN')}</p>
-                    <p className="text-[8px] font-bold text-text-muted uppercase tracking-widest mt-1">₹{part.price} + 18% GST</p>
-                </div>
-
-                <div className="space-y-1.5">
-                    <div className="flex justify-between text-[10px] font-bold">
-                        <span className={hs.text}>{hs.label}</span>
-                        <span className="text-text-muted">{part.stock.current}u</span>
-                    </div>
-                    <div className="w-full h-1 bg-accent rounded-full overflow-hidden">
-                        <div className={`h-full transition-all duration-500 ${health === 'healthy' ? 'bg-primary' : health === 'low' ? 'bg-amber-400' : 'bg-error'}`} style={{ width: `${pct}%` }} />
-                    </div>
-                </div>
+        <div
+            onClick={onSelect}
+            className="group cursor-pointer bg-white rounded-lg border border-gray-100 p-5 flex flex-col hover:shadow-lg transition-shadow duration-300 h-full"
+        >
+            {/* ─── Top Header ─── */}
+            <div className="flex justify-between items-center mb-5">
+                <span className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">
+                    SR-{String(part.srNo).padStart(2, '0')}
+                </span>
+                <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border border-gray-100 text-gray-700 flex items-center gap-1.5 bg-white shadow-sm">
+                    <span className="w-1 h-1 rounded-full" style={{ backgroundColor: catInfo?.color || '#FF6347' }} />
+                    {catInfo?.label || part.category}
+                </span>
             </div>
-            <div className="px-4 py-3 bg-accent/40 border-t border-input/10 flex justify-between items-center group-hover:bg-primary/5 transition-colors">
-                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Stock: {part.stock.max} Max</span>
-                <span className="text-[10px] font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-widest">Detail →</span>
+
+            {/* ─── Title & Icon ─── */}
+            <h4 className="text-[15px] font-bold text-[#334155] mb-2 flex items-center gap-2">
+                {part.category === 'ELECTRICAL' ? (
+                    <svg className="w-3.5 h-3.5 text-[#FF6347]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                ) : (
+                    <span className="text-gray-400 text-xs">{catInfo?.icon}</span>
+                )}
+                {part.name}
+            </h4>
+
+            {/* ─── Price ─── */}
+            <div className="mb-8">
+                <p className="text-[26px] font-black text-[#084C3E] tracking-tight leading-none">
+                    ₹{Math.round(part.price).toLocaleString('en-IN')}
+                </p>
+            </div>
+
+            {/* ─── Stock Indicator & Progress ─── */}
+            <div className="mt-auto">
+                <div className="flex justify-between items-end mb-2.5">
+                    <span className={`text-[11px] font-bold tracking-wide ${health === 'low' ? 'text-amber-500' : health === 'critical' ? 'text-red-500' : 'text-[#084C3E]'}`}>
+                        {health === 'low' ? 'Low Stock' : health === 'critical' ? 'Critical Stock' : 'In Stock'}
+                    </span>
+                    <span className="text-[10px] font-bold text-gray-500">{part.stock.current}u</span>
+                </div>
+
+                <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden mb-5">
+                    <div
+                        className={`h-full rounded-full transition-all duration-1000 ${health === 'low' ? 'bg-amber-400' : health === 'critical' ? 'bg-red-500' : 'bg-[#084C3E]'}`}
+                        style={{ width: `${pct}%` }}
+                    />
+                </div>
+
+                {/* ─── Footer ─── */}
+                <div className="pt-4 border-t border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">
+                        STOCK: {part.stock.max} MAX
+                    </p>
+                </div>
             </div>
         </div>
     );

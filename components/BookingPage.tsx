@@ -229,22 +229,14 @@ const BookingPage: React.FC<BookingPageProps> = ({ bookingDetails, onConfirmBook
     // Additional validation (e.g., min booking value) can be added here
 
     let discountAmount = 0;
-    console.log('=== COUPON DEBUG ===');
-    console.log('Coupon Object:', coupon);
-    console.log('Coupon discountPercent:', coupon.discountPercent);
-    console.log('Coupon flatAmount:', coupon.flatAmount);
-    console.log('Base Total:', baseTotal);
 
     // Use baseTotal for calculation to ensure it matches the displayed fare
     if (coupon.discountPercent) {
       discountAmount = (baseTotal * coupon.discountPercent) / 100;
-      console.log('Calculated Discount Amount:', discountAmount);
     } else if (coupon.flatAmount) {
       discountAmount = coupon.flatAmount;
-      console.log('Flat Discount Amount:', discountAmount);
     }
 
-    console.log('Final Discount Amount:', discountAmount);
     setAppliedCoupon(coupon);
     setDiscount(discountAmount);
     setCouponCode('');
@@ -269,7 +261,6 @@ const BookingPage: React.FC<BookingPageProps> = ({ bookingDetails, onConfirmBook
     if (riderInfo.alternateNumber && !/^\d{10}$/.test(riderInfo.alternateNumber)) newErrors.alternateNumber = 'Alternate number must be 10 digits.';
     if (!riderInfo.emailId || !/\S+@\S+\.\S+/.test(riderInfo.emailId)) newErrors.emailId = 'A valid email is required.';
     if (!riderInfo.localAddress) newErrors.localAddress = 'Local address is required.';
-    if (!riderInfo.permanentAddress) newErrors.permanentAddress = 'Permanent address is required.';
     if (!riderInfo.permanentAddress) newErrors.permanentAddress = 'Permanent address is required.';
 
     // Aadhaar Validation
@@ -322,13 +313,11 @@ const BookingPage: React.FC<BookingPageProps> = ({ bookingDetails, onConfirmBook
       }
 
       // 2. Upload documents to Supabase Storage
-      console.log('Uploading documents to Supabase Storage...');
       const documentUrls = await uploadBookingDocuments({
         aadhaar: aadhaarFile || undefined,
         pan: panCardFile || undefined,
         license: drivingLicenceFile || undefined
       });
-      console.log('Document URLs:', documentUrls);
 
       // 3. Map frontend riderInfo to backend expected format  
       const apiUser = {
@@ -437,13 +426,11 @@ const BookingPage: React.FC<BookingPageProps> = ({ bookingDetails, onConfirmBook
     setIsProcessing(true);
     try {
       // STEP 1: Upload documents to Supabase Storage
-      console.log('Uploading documents to Supabase Storage...');
       const documentUrls = await uploadBookingDocuments({
         aadhaar: aadhaarFile || undefined,
         pan: panCardFile || undefined,
         license: drivingLicenceFile || undefined
       });
-      console.log('Document URLs:', documentUrls);
 
       // STEP 2: Map frontend riderInfo to backend expected format
       const apiUser = {

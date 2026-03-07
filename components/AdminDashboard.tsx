@@ -490,27 +490,57 @@ const BikeManagementPanel: React.FC<{ fleet: Bike[]; setFleet: React.Dispatch<Re
             {/* Mobile Card View */}
             <div className="md:hidden space-y-4">
                 {fleet.map(bike => (
-                    <Card key={bike.id} className="p-4 space-y-3">
-                        <div className="flex justify-between items-start">
-                            <div className="flex items-center">
-                                <img className="h-12 w-16 object-cover rounded-md bg-gray-100" src={bike.images[0]} alt={bike.name} />
-                                <div className="ml-4">
-                                    <div className="font-medium text-text-body">{bike.name}</div>
-                                    <div className="text-text-muted text-xs">{bike.specs.cc}</div>
+                    <Card key={bike.id} className="p-0 overflow-hidden group hover:shadow-2xl transition-all duration-500 border-none bg-white relative">
+                        {/* Premium Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                        <div className="h-40 bg-gray-50 flex items-center justify-center p-6 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,theme(colors.gray.200)_0%,transparent_70%)] opacity-30" />
+                            <img className="h-full w-full object-contain drop-shadow-xl group-hover:scale-110 transition-transform duration-700 relative z-10" src={bike.images[0]} alt={bike.name} />
+                            <div className="absolute top-3 right-3 flex flex-wrap gap-1 max-w-[80px] justify-end">
+                                {(bike.colorVariants || []).map((cv, i) => (
+                                    <div key={i} className="w-3 h-3 rounded-full border border-white shadow-sm" title={cv.colorName} style={{ backgroundColor: cv.colorName.toLowerCase() || '#ccc' }} />
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="p-5 flex flex-col gap-4 relative z-10">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className="text-xl font-black text-[#0A2540] tracking-tight uppercase italic leading-none mb-1">{bike.name}</h3>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{bike.specs.cc} &bull; {bike.type}</p>
+                                </div>
+                                <span className={`px-2 py-0.5 text-[9px] font-black rounded-lg border-2 uppercase tracking-widest ${bike.availability === 'Available' ? 'border-emerald-100 bg-emerald-50 text-emerald-600' :
+                                    bike.availability === 'Limited' ? 'border-amber-100 bg-amber-50 text-amber-600' : 'border-blue-100 bg-blue-50 text-blue-600'
+                                    }`}>{bike.availability}</span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 py-3 border-y border-gray-50 text-[11px] font-bold">
+                                <div><span className="text-gray-400 block mb-0.5">Day Rate</span><span className="text-[#0A2540]">₹{bike.price.day}</span></div>
+                                <div><span className="text-gray-400 block mb-0.5">Security</span><span className="text-[#0A2540]">₹{bike.deposit}</span></div>
+                                <div className="col-span-2">
+                                    <span className="text-gray-400 block mb-1">Live Inventory</span>
+                                    <div className="flex gap-2">
+                                        <div className="flex-1 bg-gray-50 rounded-lg p-2 flex flex-col items-center">
+                                            <span className="text-[9px] text-primary">Total</span>
+                                            <span className="text-sm font-black text-primary">{bikeUnits.filter(u => Number(u.bike_id) === Number(bike.id)).length}</span>
+                                        </div>
+                                        <div className="flex-1 bg-gray-50 rounded-lg p-2 flex flex-col items-center">
+                                            <span className="text-[9px] text-emerald-600">Ready</span>
+                                            <span className="text-sm font-black text-emerald-600">{bikeUnits.filter(u => Number(u.bike_id) === Number(bike.id) && u.status === 'Ready').length}</span>
+                                        </div>
+                                        <div className="flex-1 bg-gray-50 rounded-lg p-2 flex flex-col items-center">
+                                            <span className="text-[9px] text-error">Active</span>
+                                            <span className="text-sm font-black text-error">{bikeUnits.filter(u => Number(u.bike_id) === Number(bike.id) && u.status === 'Rented').length}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${bike.availability === 'Available' ? 'bg-green-100 text-green-800' :
-                                bike.availability === 'Limited' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'
-                                }`}>{bike.availability}</span>
-                        </div>
-                        <div className="border-t border-card pt-2 space-y-1 text-sm">
-                            <div className="flex justify-between"><span className="text-text-muted">Type:</span><span className="font-medium text-text-body">{bike.type}</span></div>
-                            <div className="flex justify-between"><span className="text-text-muted">Rate (Day):</span><span className="font-medium text-text-body">₹{bike.price.day}</span></div>
-                            <div className="flex justify-between"><span className="text-text-muted">Deposit:</span><span className="font-medium text-text-body">₹{bike.deposit}</span></div>
-                        </div>
-                        <div className="pt-2 border-t border-card flex justify-end gap-4">
-                            <button onClick={() => handleEdit(bike)} className="text-primary hover:underline font-medium text-sm">Edit</button>
-                            <button onClick={() => handleDelete(bike.id)} className="text-error hover:underline font-medium text-sm">Delete</button>
+
+                            <div className="flex justify-end gap-3 pt-2">
+                                <button onClick={() => handleEdit(bike)} className="text-[10px] font-black text-primary uppercase tracking-widest hover:bg-primary/5 px-4 py-2 rounded-lg transition-colors">Configure</button>
+                                <button onClick={() => handleDelete(bike.id)} className="text-[10px] font-black text-error uppercase tracking-widest hover:bg-error/5 px-4 py-2 rounded-lg transition-colors">Retire</button>
+                            </div>
                         </div>
                     </Card>
                 ))}

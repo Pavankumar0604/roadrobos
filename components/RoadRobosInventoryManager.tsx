@@ -15,6 +15,7 @@ import {
     SparklesIcon,
     BikeIcon,
     ViewGridIcon,
+    MenuAlt2Icon,
     ClipboardListIcon,
     WrenchIcon,
     UserCircleIcon,
@@ -177,6 +178,8 @@ const RoadRobosInventoryManager: React.FC<{
     const [expandedId, setExpandedId] = useState<number | null>(null);
     const [activeTab, setActiveTab] = useState<InventoryTab>('vehicles');
     const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+    const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false);
+    const [isFleetDropdownOpen, setIsFleetDropdownOpen] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
 
     const evBikes = useMemo(() => bikes.filter(b => b.type === 'Electric'), [bikes]);
@@ -331,54 +334,52 @@ const RoadRobosInventoryManager: React.FC<{
 
 
 
+    const filteredBikeUnits = useMemo(() => {
+        return bikeUnits.filter(u => {
+            const matchesSearch = !search ||
+                u.rrs_id.toLowerCase().includes(search.toLowerCase()) ||
+                u.registration_number?.toLowerCase().includes(search.toLowerCase()) ||
+                u.model_name.toLowerCase().includes(search.toLowerCase());
+            const matchesStatus = filterStatus === 'all' || u.status.toLowerCase() === filterStatus.toLowerCase();
+            return matchesSearch && matchesStatus;
+        });
+    }, [bikeUnits, search, filterStatus]);
+
     const inventoryBikes: InventoryBike[] = useMemo(() => {
-        // If we have bike units, map them to InventoryBike objects
-        // Each unit is treated as an individual bike in the inventory
-        if (bikeUnits.length > 0) {
-            return bikeUnits.map(unit => {
-                const parentBike = bikes.find(b => Number(b.id) === Number(unit.bike_id));
-                const resolvedBike = parentBike || bikes[0];
+        // We only show bikes that are in the filtered units list
+        const validUnits = filteredBikeUnits.filter(u => u.unit_number && !u.unit_number.toLowerCase().includes('demo'));
 
-                // Status mapping from unit status to VehicleStatus
-                let status: VehicleStatus = deriveStatus({ ...resolvedBike, unit } as any);
+        return validUnits.map(unit => {
+            const parentBike = bikes.find(b => Number(b.id) === Number(unit.bike_id));
+            const resolvedBike = parentBike || bikes[0];
 
-                // Clean the name. If parentBike already has the RRS ID, don't duplicate it.
-                let baseName = parentBike?.name || (unit.bikes as any)?.name || resolvedBike?.name || 'Unknown Model';
-                if (baseName.includes(` - ${unit.unit_number}`)) {
-                    baseName = baseName.replace(` - ${unit.unit_number}`, '');
-                }
+            // Status mapping from unit status to VehicleStatus
+            let status: VehicleStatus = deriveStatus({ ...resolvedBike, unit } as any);
 
-                return {
-                    ...resolvedBike, // Fallback if model not found
-                    id: resolvedBike?.id || 0, // Keep model ID for compatibility
-                    name: `${baseName} - ${unit.unit_number}`,
-                    checks: checksMap[unit.id as any] ?? defaultChecks(),
-                    status: status,
-                    unit: unit,
-                    // Override available count logic since this is a single unit
-                    availableCount: unit.status === 'Ready' ? 1 : 0,
-                    totalStock: 1,
-                    bookedCount: unit.status === 'Rented' ? 1 : 0
-                };
-            });
-        }
+            // Clean the name. If parentBike already has the RRS ID, don't duplicate it.
+            let baseName = parentBike?.name || (unit.bikes as any)?.name || resolvedBike?.name || 'Unknown Model';
+            if (baseName.includes(` - ${unit.unit_number}`)) {
+                baseName = baseName.replace(` - ${unit.unit_number}`, '');
+            }
 
-        // Fallback to model-based mapping if no units exist yet
-        return evBikes.map(b => ({
-            ...b,
-            checks: checksMap[b.id] ?? defaultChecks(),
-            status: deriveStatus(b),
-        }));
-    }, [evBikes, bikeUnits, bikes, checksMap]);
+            return {
+                ...resolvedBike, // Fallback if model not found
+                id: Number(unit.id.split('-').pop()) || resolvedBike?.id || 0, // Unique ID for the inventory item
+                name: `${baseName} - ${unit.unit_number}`,
+                checks: checksMap[unit.id as any] ?? defaultChecks(),
+                status: status,
+                unit: unit,
+                // Override available count logic since this is a single unit
+                availableCount: unit.status === 'Ready' ? 1 : 0,
+                totalStock: 1,
+                bookedCount: unit.status === 'Rented' ? 1 : 0
+            };
+        });
+    }, [filteredBikeUnits, bikes, checksMap]);
 
     const filtered = useMemo(() => inventoryBikes.filter(b => {
-        const matchStatus = filterStatus === 'all' || b.status === filterStatus;
-        const searchLower = search.toLowerCase();
-        const matchSearch = !search ||
-            b.name.toLowerCase().includes(searchLower) ||
-            b.unit?.unit_number.toLowerCase().includes(searchLower) ||
-            b.unit?.registration_number?.toLowerCase().includes(searchLower);
-
+        // All primary filtering is now done in filteredBikeUnits -> inventoryBikes
+        // This 'filtered' memo applies the towerFilter (Visualization filter)
         let matchTowerFilter = true;
         if (towerFilter !== 'ALL') {
             if (towerFilter === 'readyRent') matchTowerFilter = b.status === 'readyToRent';
@@ -388,8 +389,8 @@ const RoadRobosInventoryManager: React.FC<{
             else matchTowerFilter = false;
         }
 
-        return matchStatus && matchSearch && matchTowerFilter;
-    }), [inventoryBikes, filterStatus, search, towerFilter]);
+        return matchTowerFilter;
+    }), [inventoryBikes, towerFilter]);
 
     // Map inventory models to Fleet Units for the Tower (1:1 mapping as requested)
     const towerUnits = useMemo((): ScooterUnit[] => {
@@ -437,30 +438,42 @@ const RoadRobosInventoryManager: React.FC<{
                     />
                 </div>
 
-                {/* ─── Navigation Tabs ─── */}
-                <div className="overflow-x-auto pb-1 scrollbar-hide">
-                    <div className="flex items-center gap-2 w-fit min-w-max">
-                        {([
-                            { id: 'vehicles' as InventoryTab, label: 'Fleet Inventory', count: stats.total },
-                            { id: 'parts' as InventoryTab, label: 'Spares Bay', count: 46 },
-                        ]).map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => {
-                                    setActiveTab(tab.id);
-                                    if (tab.id === 'vehicles') setFilterStatus('all');
-                                    else setFilterCat('ALL');
-                                    setSearch('');
-                                }}
-                                className={`px-5 py-2 rounded-xl text-sm font-bold tracking-wide transition-all duration-300 active:scale-95 flex items-center gap-2 ${activeTab === tab.id
-                                    ? 'bg-primary text-white shadow-md'
-                                    : 'bg-white text-gray-500 hover:text-[#0A2540] shadow-sm border border-gray-100 hover:border-gray-200'
-                                    }`}
-                            >
-                                <span>{tab.label}</span>
-                                <span className={`px-2 py-0.5 rounded text-xs font-bold ${activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>{tab.count}</span>
-                            </button>
-                        ))}
+                {/* ─── Premium Navigation & View Switcher ─── */}
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    {/* Tab Navigation */}
+                    <div className="flex bg-white/50 backdrop-blur-md p-1.5 rounded-2xl border border-gray-100 shadow-sm overflow-x-auto scrollbar-hide">
+                        <button
+                            onClick={() => { setActiveTab('vehicles'); setFilterStatus('all'); setSearch(''); }}
+                            className={`flex items-center gap-3 px-6 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'vehicles' ? 'bg-white text-primary shadow-md' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}
+                        >
+                            <BikeIcon className="w-4 h-4" />
+                            <span>Fleet Inventory</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] ${activeTab === 'vehicles' ? 'bg-primary text-white' : 'bg-gray-100'}`}>{stats.total}</span>
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab('parts'); setFilterCat('ALL'); setSearch(''); }}
+                            className={`flex items-center gap-3 px-6 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'parts' ? 'bg-white text-primary shadow-md' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'}`}
+                        >
+                            <SparklesIcon className="w-4 h-4" />
+                            <span>Spares Bay</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] ${activeTab === 'parts' ? 'bg-primary text-white' : 'bg-gray-100'}`}>46</span>
+                        </button>
+                    </div>
+
+                    {/* View Toggle */}
+                    <div className="flex bg-white/50 backdrop-blur-md p-1.5 rounded-2xl border border-gray-100 shadow-sm">
+                        <button
+                            onClick={() => setViewMode('cards')}
+                            className={`p-2 rounded-xl transition-all duration-300 ${viewMode === 'cards' ? 'bg-white shadow-md text-primary' : 'text-gray-400 hover:text-gray-600'}`}
+                        >
+                            <ViewGridIcon className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('table')}
+                            className={`p-2 rounded-xl transition-all duration-300 ${viewMode === 'table' ? 'bg-white shadow-md text-primary' : 'text-gray-400 hover:text-gray-600'}`}
+                        >
+                            <MenuAlt2Icon className="w-5 h-5" />
+                        </button>
                     </div>
                 </div>
 
@@ -476,47 +489,118 @@ const RoadRobosInventoryManager: React.FC<{
                             className="w-full pl-12 pr-4 py-3 text-sm font-medium bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-[#0A2540] placeholder:text-gray-400"
                         />
                     </div>
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-hide w-full md:w-auto">
+                    <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
                         {activeTab === 'vehicles' ? (
-                            (['all', 'readyToRent', 'inService', 'criticalFix', 'rented', 'awaitingApproval'] as const).map(s => (
-                                <button
-                                    key={s}
-                                    onClick={() => setFilterStatus(s)}
-                                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap active:scale-95 flex items-center gap-2 ${filterStatus === s
-                                        ? 'bg-primary text-white shadow-md'
-                                        : 'bg-white text-gray-500 hover:text-[#0A2540] hover:bg-gray-50 border border-gray-100'
-                                        }`}
-                                >
-                                    {STATUS_CONFIG[s as VehicleStatus]?.label || 'All Units'}
-                                </button>
-                            ))
-                        ) : (
-                            <>
-                                <button
-                                    onClick={() => setFilterCat('ALL')}
-                                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap active:scale-95 flex items-center gap-2 ${filterCat === 'ALL'
-                                        ? 'bg-primary text-white shadow-md'
-                                        : 'bg-white text-gray-500 hover:text-[#0A2540] hover:bg-gray-50 border border-gray-100'
-                                        }`}
-                                    style={filterCat === 'ALL' ? { backgroundColor: '#084C3E' } : {}}
-                                >
-                                    All Spares
-                                </button>
-                                {PART_CATEGORIES.map(cat => (
+                            <div className="flex flex-wrap items-center gap-3">
+                                {/* Fleet Status Dropdown */}
+                                <div className="relative">
                                     <button
-                                        key={cat.id}
-                                        onClick={() => setFilterCat(cat.id)}
-                                        className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap active:scale-95 flex items-center gap-2 ${filterCat === cat.id
-                                            ? 'text-white shadow-md'
-                                            : 'bg-white text-gray-500 hover:text-[#0A2540] hover:bg-gray-50 border border-gray-100'
-                                            }`}
-                                        style={filterCat === cat.id ? { backgroundColor: cat.color } : {}}
+                                        onClick={() => setIsFleetDropdownOpen(!isFleetDropdownOpen)}
+                                        className="px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-bold text-[#0A2540] flex items-center gap-3 shadow-sm hover:border-primary transition-all active:scale-95 min-w-[200px]"
                                     >
-                                        <span>{cat.icon}</span>
-                                        {cat.label}
+                                        {filterStatus === 'all' ? (
+                                            <>
+                                                <div className="w-2 h-2 rounded-full bg-primary" />
+                                                <span>All Fleet Status</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className={`w-2 h-2 rounded-full ${STATUS_CONFIG[filterStatus as VehicleStatus]?.dot || 'bg-gray-300'}`} />
+                                                <span>{STATUS_CONFIG[filterStatus as VehicleStatus]?.label}</span>
+                                            </>
+                                        )}
+                                        <ChevronDownIcon className={`w-4 h-4 ml-auto transition-transform duration-300 ${isFleetDropdownOpen ? 'rotate-180 text-primary' : 'text-gray-400'}`} />
                                     </button>
-                                ))}
-                            </>
+
+                                    {isFleetDropdownOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-40" onClick={() => setIsFleetDropdownOpen(false)} />
+                                            <div className="absolute top-full left-0 mt-2 w-full min-w-[240px] bg-white rounded-2xl shadow-premium border border-gray-100 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <div className="max-h-64 overflow-y-auto scrollbar-hide space-y-1">
+                                                    <button
+                                                        onClick={() => {
+                                                            setFilterStatus('all');
+                                                            setIsFleetDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-3 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center gap-3 transition-colors ${filterStatus === 'all' ? 'bg-primary text-white' : 'hover:bg-gray-50 text-gray-500'}`}
+                                                    >
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${filterStatus === 'all' ? 'bg-white' : 'bg-primary'}`} />
+                                                        All Units
+                                                    </button>
+                                                    {(['readyToRent', 'inService', 'criticalFix', 'rented', 'awaitingApproval'] as const).map(s => (
+                                                        <button
+                                                            key={s}
+                                                            onClick={() => {
+                                                                setFilterStatus(s);
+                                                                setIsFleetDropdownOpen(false);
+                                                            }}
+                                                            className={`w-full text-left px-3 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center gap-3 transition-colors ${filterStatus === s ? 'text-white' : 'hover:bg-gray-50 text-gray-400'}`}
+                                                            style={filterStatus === s ? { backgroundColor: STATUS_CONFIG[s].color.split(' ')[0].replace('bg-', '') === 'primary' ? '#084C3E' : (s === 'criticalFix' ? '#EF4444' : (s === 'readyToRent' ? '#10B981' : (s === 'rented' ? '#FF6347' : '#6366F1'))) } : {}}
+                                                        >
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${filterStatus === s ? 'bg-white' : (STATUS_CONFIG[s].dot || 'bg-gray-300')}`} />
+                                                            {STATUS_CONFIG[s].label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsCatDropdownOpen(!isCatDropdownOpen)}
+                                    className="px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-bold text-[#0A2540] flex items-center gap-3 shadow-sm hover:border-primary transition-all active:scale-95 min-w-[200px]"
+                                >
+                                    {filterCat === 'ALL' ? (
+                                        <>
+                                            <div className="w-2 h-2 rounded-full bg-primary" />
+                                            <span>All Spare Categories</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="text-sm">{PART_CATEGORIES.find(c => c.id === filterCat)?.icon}</span>
+                                            <span>{PART_CATEGORIES.find(c => c.id === filterCat)?.label}</span>
+                                        </>
+                                    )}
+                                    <ChevronDownIcon className={`w-4 h-4 ml-auto transition-transform duration-300 ${isCatDropdownOpen ? 'rotate-180 text-primary' : 'text-gray-400'}`} />
+                                </button>
+
+                                {isCatDropdownOpen && (
+                                    <>
+                                        <div className="fixed inset-0 z-40" onClick={() => setIsCatDropdownOpen(false)} />
+                                        <div className="absolute top-full left-0 mt-2 w-full min-w-[240px] bg-white rounded-2xl shadow-premium border border-gray-100 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                                            <div className="max-h-64 overflow-y-auto scrollbar-hide space-y-1">
+                                                <button
+                                                    onClick={() => {
+                                                        setFilterCat('ALL');
+                                                        setIsCatDropdownOpen(false);
+                                                    }}
+                                                    className={`w-full text-left px-3 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center gap-3 transition-colors ${filterCat === 'ALL' ? 'bg-primary text-white' : 'hover:bg-gray-50 text-gray-500'}`}
+                                                >
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${filterCat === 'ALL' ? 'bg-white' : 'bg-primary'}`} />
+                                                    All Spares
+                                                </button>
+                                                {PART_CATEGORIES.map(cat => (
+                                                    <button
+                                                        key={cat.id}
+                                                        onClick={() => {
+                                                            setFilterCat(cat.id);
+                                                            setIsCatDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-3 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center gap-3 transition-colors ${filterCat === cat.id ? 'text-white' : 'hover:bg-gray-50 text-gray-400'}`}
+                                                        style={filterCat === cat.id ? { backgroundColor: cat.color } : {}}
+                                                    >
+                                                        <span className="text-xs">{cat.icon}</span>
+                                                        {cat.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
                         )}
                     </div>
                 </div>

@@ -22,7 +22,7 @@ const Footer: React.FC<FooterProps> = ({ onGoToAbout, onGoToTariff, onGoToHowItW
         e.preventDefault();
         onGoToAbout();
     };
-    
+
     const handleTariffClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         onGoToTariff();
@@ -32,12 +32,12 @@ const Footer: React.FC<FooterProps> = ({ onGoToAbout, onGoToTariff, onGoToHowItW
         e.preventDefault();
         onGoToHowItWorks();
     };
-    
+
     const handleFAQClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         onGoToFAQ();
     };
-    
+
     const handleTermsClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         onGoToTerms();
@@ -80,7 +80,7 @@ const Footer: React.FC<FooterProps> = ({ onGoToAbout, onGoToTariff, onGoToHowItW
                     <div className="col-span-2 lg:col-span-1 mb-8 lg:mb-0">
                         <h2 className="text-2xl font-bold text-white">RoAd RoBo’s</h2>
                         <p className="text-gray-300 mt-2 text-sm">Ride Smart, Rent Easy.</p>
-                         <div className="flex space-x-4 mt-6">
+                        <div className="flex space-x-4 mt-6">
                             <a href="#" aria-label="Facebook" className="text-gray-300 hover:text-white"><FacebookIcon className="h-6 w-6" /></a>
                             <a href="#" aria-label="Instagram" className="text-gray-300 hover:text-white"><InstagramIcon className="h-6 w-6" /></a>
                             <a href="#" aria-label="YouTube" className="text-gray-300 hover:text-white"><YoutubeIcon className="h-6 w-6" /></a>
@@ -96,7 +96,7 @@ const Footer: React.FC<FooterProps> = ({ onGoToAbout, onGoToTariff, onGoToHowItW
                         </ul>
                     </div>
 
-                     <div>
+                    <div>
                         <h3 className="font-heading font-extrabold tracking-wider uppercase">For Riders</h3>
                         <ul className="mt-4 space-y-2 text-gray-300">
                             <li><a href="#" onClick={handleHowItWorksClick} className="hover:text-white">How it Works</a></li>
@@ -105,7 +105,7 @@ const Footer: React.FC<FooterProps> = ({ onGoToAbout, onGoToTariff, onGoToHowItW
                         </ul>
                     </div>
 
-                     <div>
+                    <div>
                         <h3 className="font-heading font-extrabold tracking-wider uppercase">Support</h3>
                         <ul className="mt-4 space-y-2 text-gray-300">
                             <li><a href="#" onClick={handleContactClick} className="hover:text-white">Contact Us</a></li>
@@ -113,7 +113,7 @@ const Footer: React.FC<FooterProps> = ({ onGoToAbout, onGoToTariff, onGoToHowItW
                             <li><a href="#cancellation" onClick={handleCancellationPolicyClick} className="hover:text-white">Cancellations</a></li>
                         </ul>
                     </div>
-                     <div>
+                    <div>
                         <h3 className="font-heading font-extrabold tracking-wider uppercase">Legal</h3>
                         <ul className="mt-4 space-y-2 text-gray-300">
                             <li><a href="#terms" onClick={handleTermsClick} className="hover:text-white">Terms</a></li>
@@ -125,8 +125,8 @@ const Footer: React.FC<FooterProps> = ({ onGoToAbout, onGoToTariff, onGoToHowItW
 
                 <div className="mt-12 border-t border-white/20 pt-8 text-sm text-gray-300 text-center md:text-left">
                     <div className="md:flex md:justify-between">
-                         <p>
-                           Contact: <a href={`mailto:${contactEmail}`} className="hover:text-white">{contactEmail}</a> | <a href={`tel:${contactPhone}`} className="hover:text-white">{contactPhone}</a>
+                        <p>
+                            Contact: <a href={`mailto:${contactEmail}`} className="hover:text-white">{contactEmail}</a> | <a href={`tel:${contactPhone}`} className="hover:text-white">{contactPhone}</a>
                         </p>
                         <p className="mt-4 md:mt-0">
                             © {new Date().getFullYear()} Sebchris Mobility Pvt. Ltd. (RoAd RoBo’s)
@@ -138,4 +138,4 @@ const Footer: React.FC<FooterProps> = ({ onGoToAbout, onGoToTariff, onGoToHowItW
     );
 };
 
-export default Footer;
+export default React.memo(Footer);

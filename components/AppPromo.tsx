@@ -28,4 +28,4 @@ const AppPromo: React.FC = () => {
     );
 };
 
-export default AppPromo;
+export default React.memo(AppPromo);

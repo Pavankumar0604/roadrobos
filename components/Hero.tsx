@@ -213,4 +213,4 @@ const Hero: React.FC<HeroProps> = ({ onSearch, city, isSearchFormVisible, onClos
   );
 };
 
-export default Hero;
+export default React.memo(Hero);

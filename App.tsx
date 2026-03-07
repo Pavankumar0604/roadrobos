@@ -10,6 +10,7 @@ import AppPromo from './components/AppPromo';
 import Footer from './components/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
 import WelcomeModal from './components/WelcomeModal';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import { type Bike, type BikeUnit, type SearchParams, type BookingDetails, type AdminUser, type Offer, type Review, type Enquiry, type Transaction, type Employee, type SiteContent, type Application, type PickupLocation } from './types';
 import { initialSiteContent, jobOpenings, initialAdminUsers, offersData, bikes as constantsBikes, pickupLocations as constantsLocations } from './constants'; // Only keep essential constants
@@ -540,11 +541,13 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="bg-white font-sans text-primary overflow-x-hidden">
-      <Suspense fallback={<LoadingSpinner />}>
-        {renderContent()}
-      </Suspense>
-    </div>
+    <ErrorBoundary>
+      <div className="bg-white font-sans text-primary overflow-x-hidden">
+        <Suspense fallback={<LoadingSpinner />}>
+          {renderContent()}
+        </Suspense>
+      </div>
+    </ErrorBoundary>
   );
 };
 

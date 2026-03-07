@@ -438,7 +438,7 @@ export const adminAPI = {
 
         // Get bike count for fleet utilization
         const { count: bikeCount } = await supabase.from('bikes').select('*', { count: 'exact', head: true });
-        const { count: activeBookings } = await supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'confirmed');
+        const { count: activeBookings } = await supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'Active');
         const fleetUtilization = bikeCount ? Math.round((activeBookings || 0) / bikeCount * 100) : 0;
 
         // Get new applications count
@@ -752,7 +752,18 @@ export const adminAPI = {
     deleteEnquiry: async (id: string) => handleResponse(await supabase.from('enquiries').delete().eq('id', id)),
 
     // Reviews
-    getReviews: async () => handleResponse(await supabase.from('reviews').select('*')),
+    getReviews: async () => {
+        const { data, error } = await supabase.from('reviews').select('*');
+        if (error) throw new Error(error.message);
+        return (data || []).map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            rating: r.rating,
+            text: r.text,
+            status: r.status,
+            userId: r.user_id
+        }));
+    },
     createReview: async (data: any) => {
         const { data: result, error } = await supabase.functions.invoke('submit-review', { body: data });
         if (error) throw new Error(error.message);
@@ -771,18 +782,10 @@ export const adminAPI = {
             return constantsLocations;
         }
 
-        return (data || []).map((l: any) => {
-            let status: LocationStatus = 'active';
-            const name = l.name.toLowerCase();
-
-            if (name.includes('jayanagar') || name.includes('koramangala')) {
-                status = 'busy';
-            } else if (name.includes('ejipura') || name.includes('kanakapura')) {
-                status = 'unavailable';
-            }
-
-            return { name: l.name, status };
-        });
+        return (data || []).map((l: any) => ({
+            name: l.name,
+            status: (l.status as LocationStatus) || 'active'
+        }));
     },
     createLocation: async (name: string) => handleResponse(await supabase.from('pickup_locations').insert({ name, is_active: true })),
     updateLocation: async (oldName: string, name: string) => handleResponse(await supabase.from('pickup_locations').update({ name }).eq('name', oldName)),
@@ -879,8 +882,7 @@ export const adminAPI = {
             resumeUrl: data.resumeFileContent || data.resumeUrl || ''
         };
 
-        console.log('=== Submitting Application via Edge Function ===');
-        console.log('Request data:', requestData);
+
 
         const { data: result, error } = await supabase.functions.invoke('submit-application', {
             body: requestData
@@ -896,7 +898,6 @@ export const adminAPI = {
             throw new Error(result.error || 'Application submission failed');
         }
 
-        console.log('=== Application Submitted Successfully ===', result.data);
         return result.data;
     },
     updateApplication: async (id: string, status: string) => handleResponse(await supabase.from('job_applications').update({ status }).eq('id', id)),

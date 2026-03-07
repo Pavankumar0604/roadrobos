@@ -124,4 +124,4 @@ const Reviews: React.FC<ReviewsProps> = ({ reviews }) => {
   );
 };
 
-export default Reviews;
+export default React.memo(Reviews);

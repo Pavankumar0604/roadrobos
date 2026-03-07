@@ -150,7 +150,7 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
 
                     <div className="space-y-6 flex-1">
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2.5">
-                            <label className="text-[10px] font-black uppercase text-[#0A2540] tracking-[0.15em]">Step 1: Select Model Variant</label>
+                            <label className="text-[10px] font-black uppercase text-[#0A2540] tracking-[0.15em]">Step 1: Select Model & Color</label>
                             <div className="relative">
                                 <select
                                     value={selectedBikeId || ''}
@@ -162,6 +162,25 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
                                     ))}
                                 </select>
                                 <ChevronDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                            </div>
+
+                            {/* Integrated Color Selection */}
+                            <div className="grid grid-cols-2 gap-2 mt-4">
+                                {(selectedBike?.colorVariants || []).map((cv, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => setSelectedColor(cv.colorName)}
+                                        className={cn(
+                                            "p-3 rounded-xl border-2 text-xs font-bold transition-all flex items-center gap-2",
+                                            selectedColor === cv.colorName
+                                                ? "border-primary bg-primary/5 text-primary"
+                                                : "border-gray-100 hover:border-gray-200 text-gray-400 bg-white"
+                                        )}
+                                    >
+                                        <div className="w-3 h-3 rounded-full shadow-inner" style={{ backgroundColor: COLOR_CONFIGS[cv.colorName.toLowerCase()]?.hex || '#ccc' }} />
+                                        {cv.colorName}
+                                    </button>
+                                ))}
                             </div>
                         </motion.div>
 
@@ -182,33 +201,7 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
                         </motion.div>
 
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-2.5">
-                            <label className="text-[10px] font-black uppercase text-[#0A2540] tracking-[0.15em]">Step 3: Select Color Variant</label>
-                            <div className="grid grid-cols-2 gap-2">
-                                {(selectedBike?.colorVariants || []).map((cv, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => setSelectedColor(cv.colorName)}
-                                        className={cn(
-                                            "p-3 rounded-xl border-2 text-xs font-bold transition-all flex items-center gap-2",
-                                            selectedColor === cv.colorName
-                                                ? "border-primary bg-primary/5 text-primary"
-                                                : "border-gray-100 hover:border-gray-200 text-gray-400 bg-white"
-                                        )}
-                                    >
-                                        <div className="w-3 h-3 rounded-full shadow-inner" style={{ backgroundColor: COLOR_CONFIGS[cv.colorName.toLowerCase()]?.hex || '#ccc' }} />
-                                        {cv.colorName}
-                                    </button>
-                                ))}
-                                {(!selectedBike?.colorVariants || selectedBike.colorVariants.length === 0) && (
-                                    <p className="col-span-2 text-[10px] text-amber-500 font-bold italic p-2 bg-amber-50 rounded-lg">
-                                        No colors defined for this model. Update in Admin Catalog.
-                                    </p>
-                                )}
-                            </div>
-                        </motion.div>
-
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-2.5">
-                            <label className="text-[10px] font-black uppercase text-[#0A2540] tracking-[0.15em]">Step 4: Plate Number (Optional)</label>
+                            <label className="text-[10px] font-black uppercase text-[#0A2540] tracking-[0.15em]">Step 3: Plate Number (Optional)</label>
                             <input
                                 type="text"
                                 value={regNumber}
@@ -316,13 +309,13 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
                     </div>
                 </div>
 
-                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                <div className="flex flex-wrap gap-4 pb-4">
                     {inventoryUnits.slice(-8).reverse().map((unit) => (
                         <motion.div
                             key={unit.id}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="flex-shrink-0 w-64 bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/10 transition-colors group/unit"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="flex-1 min-w-[240px] max-w-[320px] bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/10 transition-all hover:border-white/20 group/unit shadow-lg"
                         >
                             <div className="flex items-center justify-between mb-4">
                                 <span className="text-[10px] font-mono text-white/60 tracking-wider">#{unit.unit_number}</span>
@@ -337,7 +330,7 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
 
                             <div className="mt-4 flex items-center justify-between pt-4 border-t border-white/5">
                                 <span className="text-[8px] font-black text-white/30 uppercase tracking-widest">{new Date(unit.created_at).toLocaleDateString()}</span>
-                                <span className="text-[10px] font-black text-secondary uppercase tracking-widest italic">{unit.status}</span>
+                                <span className="px-2 py-0.5 text-[9px] font-black text-secondary uppercase tracking-widest italic bg-secondary/10 rounded-lg">{unit.status}</span>
                             </div>
                         </motion.div>
                     ))}

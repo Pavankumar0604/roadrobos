@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Card from './Card';
 import { type Transaction } from '../types';
+import { ChevronDownIcon } from './icons/Icons';
 
 interface TransactionPanelProps {
     transactions: Transaction[];
@@ -12,6 +13,7 @@ const TransactionManagementPanel: React.FC<TransactionPanelProps> = ({ transacti
     const [customStartDate, setCustomStartDate] = useState('');
     const [customEndDate, setCustomEndDate] = useState('');
     const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
+    const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
 
     // Filter transactions based on date filter
     const filteredTransactions = transactions.filter(t => {
@@ -88,87 +90,91 @@ const TransactionManagementPanel: React.FC<TransactionPanelProps> = ({ transacti
             </div>
 
             {/* Date Filter Controls */}
-            <Card className="p-4 mb-6">
-                <div className="flex flex-col gap-4">
-                    <div className="flex flex-wrap gap-2">
-                        <button
-                            onClick={() => setDateFilter('all')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${dateFilter === 'all'
-                                ? 'bg-primary text-white shadow'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            All Time
-                        </button>
-                        <button
-                            onClick={() => setDateFilter('today')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${dateFilter === 'today'
-                                ? 'bg-primary text-white shadow'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            Today
-                        </button>
-                        <button
-                            onClick={() => setDateFilter('month')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${dateFilter === 'month'
-                                ? 'bg-primary text-white shadow'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            This Month
-                        </button>
-                        <button
-                            onClick={() => setDateFilter('year')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${dateFilter === 'year'
-                                ? 'bg-primary text-white shadow'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            This Year
-                        </button>
-                        <button
-                            onClick={() => setShowCustomDatePicker(!showCustomDatePicker)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${dateFilter === 'custom'
-                                ? 'bg-primary text-white shadow'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            Custom Range
-                        </button>
-                    </div>
+            <div className="flex flex-wrap items-center gap-4 mb-8">
+                <div className="relative">
+                    <button
+                        onClick={() => {
+                            setIsDateDropdownOpen(!isDateDropdownOpen);
+                            setShowCustomDatePicker(false);
+                        }}
+                        className="px-5 py-3 bg-white border border-gray-100 rounded-2xl text-[11px] font-black uppercase tracking-wider text-[#0A2540] flex items-center gap-3 shadow-sm hover:border-primary transition-all active:scale-95 group min-w-[200px]"
+                    >
+                        <div className={`w-2 h-2 rounded-full ${dateFilter === 'custom' ? 'bg-[#0A2540]' : 'bg-primary'}`} />
+                        <span>
+                            {dateFilter === 'all' ? 'All Time' :
+                                dateFilter === 'today' ? 'Today' :
+                                    dateFilter === 'month' ? 'This Month' :
+                                        dateFilter === 'year' ? 'This Year' : 'Custom Range'}
+                        </span>
+                        <ChevronDownIcon className={`w-4 h-4 ml-auto transition-transform duration-500 ${isDateDropdownOpen ? 'rotate-180 text-primary' : 'text-gray-300 group-hover:text-primary'}`} />
+                    </button>
 
-                    {/* Custom Date Range Picker */}
-                    {showCustomDatePicker && (
-                        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end p-4 bg-gray-50 rounded-lg">
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                                <input
-                                    type="date"
-                                    value={customStartDate}
-                                    onChange={(e) => setCustomStartDate(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                                />
+                    {isDateDropdownOpen && (
+                        <>
+                            <div className="fixed inset-0 z-40" onClick={() => setIsDateDropdownOpen(false)} />
+                            <div className="absolute top-full left-0 mt-2 w-full bg-white/80 backdrop-blur-xl rounded-2xl shadow-premium border border-white/20 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="max-h-64 overflow-y-auto scrollbar-hide space-y-1">
+                                    {[
+                                        { id: 'all', label: 'All Time' },
+                                        { id: 'today', label: 'Today' },
+                                        { id: 'month', label: 'This Month' },
+                                        { id: 'year', label: 'This Year' },
+                                        { id: 'custom', label: 'Custom Range', isCustom: true }
+                                    ].map(opt => (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => {
+                                                if (opt.isCustom) {
+                                                    setShowCustomDatePicker(true);
+                                                    setIsDateDropdownOpen(false);
+                                                } else {
+                                                    setDateFilter(opt.id as any);
+                                                    setIsDateDropdownOpen(false);
+                                                    setShowCustomDatePicker(false);
+                                                }
+                                            }}
+                                            className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${dateFilter === opt.id ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-gray-50/50 text-gray-400'}`}
+                                        >
+                                            <div className={`w-1.5 h-1.5 rounded-full ${dateFilter === opt.id ? 'bg-white' : 'bg-primary'}`} />
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                                <input
-                                    type="date"
-                                    value={customEndDate}
-                                    onChange={(e) => setCustomEndDate(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                                />
-                            </div>
-                            <button
-                                onClick={handleApplyCustomFilter}
-                                className="bg-primary text-white font-semibold py-2 px-6 rounded-lg hover:shadow transition"
-                            >
-                                Apply Filter
-                            </button>
-                        </div>
+                        </>
                     )}
                 </div>
-            </Card>
+            </div>
+
+            {/* Custom Date Range Picker */}
+            {showCustomDatePicker && (
+                <div className="flex flex-col sm:flex-row gap-4 items-end p-5 bg-gray-50/50 backdrop-blur-sm rounded-2xl border border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300 mb-6">
+                    <div className="flex-1 w-full">
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">Start Date</label>
+                        <input
+                            type="date"
+                            value={customStartDate}
+                            onChange={(e) => setCustomStartDate(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                        />
+                    </div>
+                    <div className="flex-1 w-full">
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2 ml-1">End Date</label>
+                        <input
+                            type="date"
+                            value={customEndDate}
+                            onChange={(e) => setCustomEndDate(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none"
+                        />
+                    </div>
+                    <button
+                        onClick={handleApplyCustomFilter}
+                        className="w-full sm:w-auto px-8 py-2.5 bg-primary text-white font-bold text-xs uppercase tracking-widest rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all active:scale-95"
+                    >
+                        Apply Range
+                    </button>
+                </div>
+            )}
 
             {/* Mobile Card View */}
             <div className="md:hidden space-y-4">

@@ -16,11 +16,15 @@ export default defineConfig(({ mode }) => {
       }
     },
     plugins: [react()],
+    esbuild: {
+      drop: mode === 'production' ? ['console', 'debugger'] : [],
+    },
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
     },
     build: {
+      chunkSizeWarningLimit: 600,
       rollupOptions: {
         output: {
           manualChunks: {
@@ -29,6 +33,7 @@ export default defineConfig(({ mode }) => {
             'motion': ['framer-motion'],
             'pdf-utils': ['jspdf', 'jspdf-autotable', 'html2canvas'],
             'excel-utils': ['xlsx'],
+            'supabase': ['@supabase/supabase-js'],
           }
         }
       }

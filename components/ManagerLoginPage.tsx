@@ -21,45 +21,6 @@ const ManagerLoginPage: React.FC<ManagerLoginPageProps> = ({ onLoginSuccess, onB
         setIsLoading(true);
         setError('');
 
-        // --- Demo Bypass for Testing ---
-        if (selectedRole === 'Manager' && email === 'manager@roadrobos.com' && password === 'manager123') {
-            const demoUser: AdminUser = {
-                id: 'demo-manager-id',
-                name: 'General Manager',
-                email: 'manager@roadrobos.com',
-                role: {
-                    id: 'role-manager',
-                    name: 'Manager',
-                    permissions: []
-                },
-                passwordHash: ''
-            };
-            setTimeout(() => {
-                onLoginSuccess(demoUser);
-                setIsLoading(false);
-            }, 800);
-            return;
-        }
-
-        if (selectedRole === 'Service Manager' && email === 'service@roadrobos.com' && password === 'service123') {
-            const demoUser: AdminUser = {
-                id: 'demo-service-manager-id',
-                name: 'Service Manager',
-                email: 'service@roadrobos.com',
-                role: {
-                    id: 'role-service-manager',
-                    name: 'Service Manager',
-                    permissions: []
-                },
-                passwordHash: ''
-            };
-            setTimeout(() => {
-                onLoginSuccess(demoUser);
-                setIsLoading(false);
-            }, 800);
-            return;
-        }
-
         try {
             const result = await signIn(email, password);
 

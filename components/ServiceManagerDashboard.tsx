@@ -14,7 +14,9 @@ import {
     MenuAlt2Icon,
     InboxIcon,
     PlayIcon,
-    RefreshIcon
+    RefreshIcon,
+    ChevronDownIcon,
+    ViewGridIcon
 } from './icons/Icons';
 import { EEVA_ECO_PARTS, PART_CATEGORIES, type EevaEcoPart, type PartCategory } from '../data/eevaPartsData';
 import { type AdminUser, type Bike, type BikeUnit } from '../types';
@@ -29,7 +31,7 @@ interface ServiceManagerDashboardProps {
     onUpdateUnit?: (id: string, unit: Partial<BikeUnit>) => Promise<void>;
 }
 
-type ServicePanel = 'queue' | 'history' | 'inventory' | 'team' | 'alerts';
+type ServicePanel = 'dashboard' | 'queue' | 'history' | 'inventory' | 'team' | 'alerts';
 type FilterStatus = 'all' | 'pending' | 'in_progress' | 'completed';
 
 const ServiceGradientCard = ({
@@ -365,6 +367,10 @@ const ServiceCard: React.FC<{
     );
 };
 const FILTER_CONFIGS: Record<ServicePanel, { placeholder: string, filters: { id: string, label: string, color?: string, icon?: string }[] }> = {
+    dashboard: {
+        placeholder: "Search operations...",
+        filters: []
+    },
     queue: {
         placeholder: "Search units by ID or name...",
         filters: [
@@ -408,8 +414,86 @@ const FILTER_CONFIGS: Record<ServicePanel, { placeholder: string, filters: { id:
     }
 };
 
+const ServiceHomePanel = ({ user, stats, setActivePanel, setFilterStatus }: {
+    user: AdminUser,
+    stats: any,
+    setActivePanel: (p: ServicePanel) => void,
+    setFilterStatus: (s: FilterStatus) => void
+}) => (
+    <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-10">
+            <div>
+                <h1 className="text-3xl font-bold text-text-body">Welcome back, {user.name}!</h1>
+                <p className="text-gray-600 mt-1">Here's a quick overview of your business.</p>
+            </div>
+        </div>
+
+        {/* Stats Grid - Real-time service metrics (clickable) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            <ServiceGradientCard
+                label="In Service"
+                value={stats.inService}
+                icon={WrenchIcon}
+                color="green"
+                sublabel="Units under maintenance"
+                onClick={() => { setActivePanel('queue'); setFilterStatus('all'); }}
+            />
+            <ServiceGradientCard
+                label="Pending"
+                value={stats.pending}
+                icon={InboxIcon}
+                color="blue"
+                sublabel="Awaiting service start"
+                onClick={() => { setActivePanel('queue'); setFilterStatus('pending'); }}
+            />
+            <ServiceGradientCard
+                label="In Progress"
+                value={stats.inProgress}
+                icon={PlayIcon}
+                color="purple"
+                sublabel="Active service jobs"
+                onClick={() => { setActivePanel('queue'); setFilterStatus('in_progress'); }}
+            />
+            <ServiceGradientCard
+                label="Completed"
+                value={stats.completed}
+                icon={CheckCircleIcon}
+                color="orange"
+                sublabel="Awaiting audit approval"
+                onClick={() => { setActivePanel('history'); setFilterStatus('completed'); }}
+            />
+        </div>
+
+        {/* Rapid Actions */}
+        <div className="mt-8">
+            <Card className="p-8 border border-input/30 bg-white shadow-card rounded-2xl">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-black text-text-body tracking-tight uppercase italic">Operational Shortcuts</h2>
+                    <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest rounded-md">Live Status</span>
+                </div>
+                <div className="flex flex-wrap gap-4">
+                    <button
+                        onClick={() => setActivePanel('queue')}
+                        className="group bg-primary text-white font-bold py-3.5 px-6 rounded-lg hover:bg-black transition-all flex items-center gap-3 shadow-md shadow-primary/20 active:scale-95 text-[11px] uppercase tracking-widest"
+                    >
+                        <InboxIcon className="w-5 h-5 transition-transform" />
+                        <span>View Queue</span>
+                    </button>
+                    <button
+                        onClick={() => setActivePanel('inventory')}
+                        className="group bg-secondary text-white font-bold py-3.5 px-6 rounded-lg hover:bg-secondary-light transition-all flex items-center gap-3 shadow-md shadow-secondary/20 active:scale-95 text-[11px] uppercase tracking-widest"
+                    >
+                        <WrenchIcon className="w-5 h-5 transition-transform" />
+                        <span>Stock Inventory</span>
+                    </button>
+                </div>
+            </Card>
+        </div>
+    </div>
+);
+
 const ServiceManagerDashboard: React.FC<ServiceManagerDashboardProps> = ({ user, onLogout, bikes, bikeUnits, onUpdateBike, onUpdateUnit }) => {
-    const [activePanel, setActivePanel] = useState<ServicePanel>('queue');
+    const [activePanel, setActivePanel] = useState<ServicePanel>('dashboard');
     const [filterStatus, setFilterStatus] = useState<FilterStatus>('all'); // Used for Queue
     const [searchQuery, setSearchQuery] = useState('');
     const [filterCat, setFilterCat] = useState<PartCategory | 'ALL'>('ALL'); // Used for Inventory
@@ -420,6 +504,8 @@ const ServiceManagerDashboard: React.FC<ServiceManagerDashboardProps> = ({ user,
     const [team, setTeam] = useState<any[]>([]);
     const [history, setHistory] = useState<any[]>([]);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+    const [isInventoryDropdownOpen, setIsInventoryDropdownOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -603,6 +689,16 @@ const ServiceManagerDashboard: React.FC<ServiceManagerDashboardProps> = ({ user,
             </div>
             <nav className="flex-grow p-3 overflow-y-auto">
                 <button
+                    onClick={() => setActivePanel('dashboard')}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition mb-1 ${activePanel === 'dashboard'
+                        ? 'bg-white/20 text-white'
+                        : 'text-white/70 hover:bg-white/10 hover:text-white'
+                        }`}
+                >
+                    <ViewGridIcon className="w-5 h-5 shrink-0" />
+                    <span>Dashboard Home</span>
+                </button>
+                <button
                     onClick={() => setActivePanel('queue')}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition mb-1 ${activePanel === 'queue'
                         ? 'bg-white/20 text-white'
@@ -707,106 +803,161 @@ const ServiceManagerDashboard: React.FC<ServiceManagerDashboardProps> = ({ user,
                 </div>
 
                 {/* Header Row */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-10">
-                    <div>
-                        <h1 className="text-3xl font-bold text-text-body">Welcome back, {user.name}!</h1>
-                        <p className="text-gray-600 mt-1">Here's a quick overview of your business.</p>
-                    </div>
-
-                    <div className="flex items-center gap-4 w-full md:w-auto">
-                        {/* Search moved to filter row for unified look */}
-                    </div>
-                </div>
-
-                {/* Stats Grid - Real-time service metrics (clickable) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-                    <ServiceGradientCard
-                        label="In Service"
-                        value={stats.inService}
-                        icon={WrenchIcon}
-                        color="green"
-                        sublabel="Units under maintenance"
-                        onClick={() => { setActivePanel('queue'); setFilterStatus('all'); }}
-                    />
-                    <ServiceGradientCard
-                        label="Pending"
-                        value={stats.pending}
-                        icon={InboxIcon}
-                        color="blue"
-                        sublabel="Awaiting service start"
-                        onClick={() => { setActivePanel('queue'); setFilterStatus('pending'); }}
-                    />
-                    <ServiceGradientCard
-                        label="In Progress"
-                        value={stats.inProgress}
-                        icon={PlayIcon}
-                        color="purple"
-                        sublabel="Active service jobs"
-                        onClick={() => { setActivePanel('queue'); setFilterStatus('in_progress'); }}
-                    />
-                    <ServiceGradientCard
-                        label="Completed"
-                        value={stats.completed}
-                        icon={CheckCircleIcon}
-                        color="orange"
-                        sublabel="Awaiting audit approval"
-                        onClick={() => { setActivePanel('history'); setFilterStatus('completed'); }}
-                    />
-                </div>
-
-                <div className="bg-white rounded-2xl shadow-premium p-4 flex flex-col md:flex-row gap-4 justify-between items-center border-none mb-10">
-                    <div className="relative w-full md:w-80 group">
-                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-primary transition-colors" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                            placeholder={FILTER_CONFIGS[activePanel].placeholder}
-                            className="w-full pl-12 pr-4 py-3 text-sm font-medium bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-[#0A2540] placeholder:text-gray-400"
-                        />
-                    </div>
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-hide w-full md:w-auto">
-                        {FILTER_CONFIGS[activePanel].filters.map((filter) => {
-                            let isActive = false;
-                            let onClick = () => { };
-
-                            if (activePanel === 'queue') {
-                                isActive = filterStatus === filter.id;
-                                onClick = () => setFilterStatus(filter.id as FilterStatus);
-                            } else if (activePanel === 'history') {
-                                isActive = historyFilter === filter.id;
-                                onClick = () => setHistoryFilter(filter.id);
-                            } else if (activePanel === 'inventory') {
-                                isActive = filterCat === filter.id;
-                                onClick = () => setFilterCat(filter.id as any);
-                            } else if (activePanel === 'team') {
-                                isActive = teamFilter === filter.id;
-                                onClick = () => setTeamFilter(filter.id);
-                            } else if (activePanel === 'alerts') {
-                                isActive = alertsFilter === filter.id;
-                                onClick = () => setAlertsFilter(filter.id);
-                            }
-
-                            return (
-                                <button
-                                    key={filter.id}
-                                    onClick={onClick}
-                                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap active:scale-95 flex items-center gap-2 ${isActive
-                                        ? 'text-white shadow-md'
-                                        : 'bg-white text-gray-500 hover:text-[#0A2540] hover:bg-gray-50 border border-gray-100'
-                                        }`}
-                                    style={isActive ? { backgroundColor: filter.color || '#084C3E' } : {}}
-                                >
-                                    {filter.icon && <span>{filter.icon}</span>}
-                                    {filter.label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
                 {/* Dashboard Panels */}
                 <div className="animate-in fade-in slide-in-from-bottom-12 duration-1000">
+                    {activePanel === 'dashboard' && (
+                        <ServiceHomePanel
+                            user={user}
+                            stats={stats}
+                            setActivePanel={(panel) => setActivePanel(panel)}
+                            setFilterStatus={(status) => setFilterStatus(status)}
+                        />
+                    )}
+
+                    {activePanel !== 'dashboard' && (
+                        <div className="bg-white rounded-2xl shadow-premium p-4 flex flex-col md:flex-row gap-4 justify-between items-center border-none mb-10">
+                            <div className="relative w-full md:w-80 group">
+                                <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-primary transition-colors" />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                    placeholder={FILTER_CONFIGS[activePanel].placeholder}
+                                    className="w-full pl-12 pr-4 py-3 text-sm font-medium bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-[#0A2540] placeholder:text-gray-400"
+                                />
+                            </div>
+                            <div className="relative w-full md:w-auto">
+                                <button
+                                    onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                                    className="w-full md:w-64 px-4 py-3 bg-white border border-gray-100 rounded-xl text-xs font-bold text-[#0A2540] flex items-center gap-3 shadow-sm hover:border-primary transition-all active:scale-95 group"
+                                >
+                                    {(() => {
+                                        let currentFilterLabel = 'All Filters';
+                                        let currentFilterIcon: any = null;
+                                        let currentFilterColor = 'bg-primary';
+
+                                        if (activePanel === 'inventory') {
+                                            if (filterCat === 'ALL') {
+                                                currentFilterLabel = 'All Spares';
+                                            } else {
+                                                const cat = PART_CATEGORIES.find(c => c.id === filterCat);
+                                                currentFilterLabel = cat?.label || 'Spare Category';
+                                                currentFilterIcon = <span className="text-sm">{cat?.icon}</span>;
+                                                currentFilterColor = ''; // Managed by style
+                                            }
+                                        } else {
+                                            const panelFilters = FILTER_CONFIGS[activePanel].filters;
+                                            let currentId = 'all';
+                                            if (activePanel === 'queue') currentId = filterStatus;
+                                            else if (activePanel === 'history') currentId = historyFilter;
+                                            else if (activePanel === 'team') currentId = teamFilter;
+                                            else if (activePanel === 'alerts') currentId = alertsFilter;
+
+                                            const currentFilter = panelFilters.find(f => f.id === currentId);
+                                            currentFilterLabel = currentFilter?.label || 'Filter';
+                                            if (currentFilter?.icon) currentFilterIcon = <span className="text-xs">{currentFilter.icon}</span>;
+                                            if (currentFilter?.color) currentFilterColor = ''; // Managed by style
+                                        }
+
+                                        return (
+                                            <>
+                                                {currentFilterIcon ? currentFilterIcon : (
+                                                    <div className={`w-2 h-2 rounded-full ${currentFilterColor || 'bg-primary'}`}
+                                                        style={activePanel !== 'inventory' && activePanel !== 'dashboard' ? {
+                                                            backgroundColor: FILTER_CONFIGS[activePanel].filters.find(f => {
+                                                                if (activePanel === 'queue') return f.id === filterStatus;
+                                                                if (activePanel === 'history') return f.id === historyFilter;
+                                                                if (activePanel === 'team') return f.id === teamFilter;
+                                                                if (activePanel === 'alerts') return f.id === alertsFilter;
+                                                                return false;
+                                                            })?.color
+                                                        } : {}}
+                                                    />
+                                                )}
+                                                <span>{currentFilterLabel}</span>
+                                                <ChevronDownIcon className={`w-4 h-4 ml-auto transition-transform duration-500 ${isFilterDropdownOpen ? 'rotate-180 text-primary' : 'text-gray-400 group-hover:text-primary'}`} />
+                                            </>
+                                        );
+                                    })()}
+                                </button>
+
+                                {isFilterDropdownOpen && (
+                                    <>
+                                        <div className="fixed inset-0 z-40" onClick={() => setIsFilterDropdownOpen(false)} />
+                                        <div className="absolute top-full right-0 mt-2 w-full md:w-64 bg-white/80 backdrop-blur-xl rounded-2xl shadow-premium border border-white/20 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                                            <div className="max-h-64 overflow-y-auto scrollbar-hide space-y-1">
+                                                {activePanel === 'inventory' ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => {
+                                                                setFilterCat('ALL');
+                                                                setIsFilterDropdownOpen(false);
+                                                            }}
+                                                            className={`w-full text-left px-3 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center gap-3 transition-colors ${filterCat === 'ALL' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-gray-50/50 text-gray-500'}`}
+                                                        >
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${filterCat === 'ALL' ? 'bg-white' : 'bg-primary'}`} />
+                                                            All Spares
+                                                        </button>
+                                                        {PART_CATEGORIES.map(cat => (
+                                                            <button
+                                                                key={cat.id}
+                                                                onClick={() => {
+                                                                    setFilterCat(cat.id);
+                                                                    setIsFilterDropdownOpen(false);
+                                                                }}
+                                                                className={`w-full text-left px-3 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center gap-3 transition-colors ${filterCat === cat.id ? 'text-white' : 'hover:bg-gray-50/50 text-gray-400'}`}
+                                                                style={filterCat === cat.id ? { backgroundColor: cat.color, boxShadow: `0 4px 12px ${cat.color}33` } : {}}
+                                                            >
+                                                                <span className="text-xs">{cat.icon}</span>
+                                                                {cat.label}
+                                                            </button>
+                                                        ))}
+                                                    </>
+                                                ) : (
+                                                    FILTER_CONFIGS[activePanel].filters.map((filter) => {
+                                                        let isActive = false;
+                                                        let onClick = () => { };
+
+                                                        if (activePanel === 'queue') {
+                                                            isActive = filterStatus === filter.id;
+                                                            onClick = () => { setFilterStatus(filter.id as FilterStatus); setIsFilterDropdownOpen(false); };
+                                                        } else if (activePanel === 'history') {
+                                                            isActive = historyFilter === filter.id;
+                                                            onClick = () => { setHistoryFilter(filter.id); setIsFilterDropdownOpen(false); };
+                                                        } else if (activePanel === 'team') {
+                                                            isActive = teamFilter === filter.id;
+                                                            onClick = () => { setTeamFilter(filter.id); setIsFilterDropdownOpen(false); };
+                                                        } else if (activePanel === 'alerts') {
+                                                            isActive = alertsFilter === filter.id;
+                                                            onClick = () => { setAlertsFilter(filter.id); setIsFilterDropdownOpen(false); };
+                                                        }
+
+                                                        return (
+                                                            <button
+                                                                key={filter.id}
+                                                                onClick={onClick}
+                                                                className={`w-full text-left px-3 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider flex items-center gap-3 transition-colors ${isActive ? 'text-white shadow-lg' : 'hover:bg-gray-50/50 text-gray-400'}`}
+                                                                style={isActive ? { backgroundColor: filter.color || '#F83060', boxShadow: `0 4px 12px ${(filter.color || '#F83060')}33` } : {}}
+                                                            >
+                                                                {filter.icon ? (
+                                                                    <span className="text-xs">{filter.icon}</span>
+                                                                ) : (
+                                                                    <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-white' : 'bg-primary'}`}
+                                                                        style={!isActive && filter.color ? { backgroundColor: filter.color } : {}}
+                                                                    />
+                                                                )}
+                                                                {filter.label}
+                                                            </button>
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
                     {activePanel === 'queue' && (
                         <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-12">
                             {serviceQueue.length > 0 ? (

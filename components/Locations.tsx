@@ -66,52 +66,33 @@ const Locations: React.FC<LocationsProps> = ({ pickupLocations }) => {
                     <p className="mt-2 text-gray-500 text-sm md:text-base font-medium">Find us conveniently located across Bangalore's major hubs</p>
                 </div>
 
-                {/* Horizontal Scrolling Container */}
-                <div className="relative group">
-                    <div className="flex overflow-x-auto pb-6 pt-2 gap-4 no-scrollbar scroll-smooth snap-x snap-mandatory">
-                        <div className="flex-shrink-0 w-2 md:w-4" />
-
-                        {pickupLocations.map((location) => {
-                            const styles = getStatusStyles(location.status);
-                            return (
-                                <div
-                                    key={location.name}
-                                    className={`
-                                        flex-shrink-0 snap-center flex items-center gap-3 px-6 py-3.5 
-                                        rounded-full border shadow-sm transition-all duration-300 
-                                        hover:shadow-md hover:-translate-y-0.5 cursor-default
-                                        ${styles.pill}
-                                    `}
-                                >
-                                    <span className="font-bold text-sm md:text-base whitespace-nowrap tracking-wide">
-                                        {location.name}
-                                    </span>
-                                    <div className={`w-2.5 h-2.5 rounded-full ${styles.dot}`} />
-                                </div>
-                            );
-                        })}
-
-                        <div className="flex-shrink-0 w-2 md:w-4" />
-                    </div>
-
-                    {/* Artistic gradient fades for horizontal scroll indication */}
-                    <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-white to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-white to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                {/* Refactored Wrapped Container (No Scrolling) */}
+                <div className="flex flex-wrap justify-center items-center gap-4 py-6">
+                    {pickupLocations.map((location) => {
+                        const styles = getStatusStyles(location.status);
+                        return (
+                            <div
+                                key={location.name}
+                                className={`
+                                    flex items-center gap-3 px-6 py-3.5 
+                                    rounded-full border shadow-sm transition-all duration-500 
+                                    hover:shadow-xl hover:-translate-y-1 cursor-default
+                                    animate-in fade-in zoom-in duration-700
+                                    ${styles.pill}
+                                `}
+                            >
+                                <span className="font-bold text-sm md:text-base whitespace-nowrap tracking-wide leading-none">
+                                    {location.name}
+                                </span>
+                                <div className={`w-2.5 h-2.5 rounded-full ${styles.dot}`} />
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                .no-scrollbar::-webkit-scrollbar {
-                    display: none;
-                }
-                .no-scrollbar {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
-            ` }} />
         </section>
     );
 };
 
-export default Locations;
+export default React.memo(Locations);

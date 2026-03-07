@@ -1,3 +1,7 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+
 // Helper function to load Razorpay script
 const loadRazorpayScript = (src: string) => {
   return new Promise((resolve) => {
@@ -14,10 +18,7 @@ const loadRazorpayScript = (src: string) => {
 };
 
 // Make the script loader globally available for components like PaymentModal
-window.loadRazorpayScript = loadRazorpayScript;
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
+(window as any).loadRazorpayScript = loadRazorpayScript;
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

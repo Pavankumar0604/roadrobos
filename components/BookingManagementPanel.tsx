@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Card from './Card';
 import { supabase } from '../src/supabaseClient';
 import api from '../src/api';
+import { ChevronDownIcon, SearchIcon } from './icons/Icons';
 
 interface Booking {
     id: string;
@@ -32,6 +33,8 @@ const BookingManagementPanel: React.FC<BookingManagementPanelProps> = ({ initial
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'cancelled'>(initialFilter);
     const [paymentFilter, setPaymentFilter] = useState<'all' | 'paid' | 'pending'>(initialPaymentFilter);
+    const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+    const [isPaymentDropdownOpen, setIsPaymentDropdownOpen] = useState(false);
 
     useEffect(() => {
         fetchBookings();
@@ -164,75 +167,93 @@ const BookingManagementPanel: React.FC<BookingManagementPanelProps> = ({ initial
             </div>
 
             {/* Filters */}
-            <Card className="p-4 mb-6">
-                <div className="flex flex-col gap-4">
-                    <div>
-                        <h3 className="text-sm font-semibold text-gray-700 mb-2">Booking Status</h3>
-                        <div className="flex flex-wrap gap-2">
-                            <button
-                                onClick={() => setFilter('all')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filter === 'all'
-                                    ? 'bg-primary text-white shadow'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                All ({bookings.length})
-                            </button>
-                            <button
-                                onClick={() => setFilter('active')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filter === 'active'
-                                    ? 'bg-green-600 text-white shadow'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                🟢 Live/Active ({activeBookings.length})
-                            </button>
-                            <button
-                                onClick={() => setFilter('completed')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filter === 'completed'
-                                    ? 'bg-gray-600 text-white shadow'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                📜 History/Completed ({completedBookings.length})
-                            </button>
+            <div className="flex flex-wrap items-center gap-4 mb-8">
+                {/* Booking Status Dropdown */}
+                <div className="relative">
+                    <button
+                        onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                        className="px-5 py-3 bg-white border border-gray-100 rounded-2xl text-[11px] font-black uppercase tracking-wider text-[#0A2540] flex items-center gap-3 shadow-sm hover:border-primary transition-all active:scale-95 group min-w-[220px]"
+                    >
+                        <div className={`w-2 h-2 rounded-full ${filter === 'all' ? 'bg-primary' : filter === 'active' ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                        <span>{filter === 'all' ? 'All Bookings' : filter === 'active' ? 'Live/Active' : 'History/Completed'}</span>
+                        <div className="ml-auto flex items-center gap-2">
+                            <span className="opacity-40 text-[10px] bg-gray-100 px-1.5 py-0.5 rounded-md">
+                                {filter === 'all' ? bookings.length : filter === 'active' ? activeBookings.length : completedBookings.length}
+                            </span>
+                            <ChevronDownIcon className={`w-4 h-4 transition-transform duration-500 ${isStatusDropdownOpen ? 'rotate-180 text-primary' : 'text-gray-300 group-hover:text-primary'}`} />
                         </div>
-                    </div>
+                    </button>
 
-                    <div>
-                        <h3 className="text-sm font-semibold text-gray-700 mb-2">Payment Status</h3>
-                        <div className="flex flex-wrap gap-2">
-                            <button
-                                onClick={() => setPaymentFilter('all')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${paymentFilter === 'all'
-                                    ? 'bg-primary text-white shadow'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                All Payments
-                            </button>
-                            <button
-                                onClick={() => setPaymentFilter('paid')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${paymentFilter === 'paid'
-                                    ? 'bg-green-600 text-white shadow'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                ✅ Paid
-                            </button>
-                            <button
-                                onClick={() => setPaymentFilter('pending')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${paymentFilter === 'pending'
-                                    ? 'bg-yellow-500 text-white shadow'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                            >
-                                ⏳ Pending/Cash
-                            </button>
-                        </div>
-                    </div>
+                    {isStatusDropdownOpen && (
+                        <>
+                            <div className="fixed inset-0 z-40" onClick={() => setIsStatusDropdownOpen(false)} />
+                            <div className="absolute top-full left-0 mt-2 w-full bg-white/80 backdrop-blur-xl rounded-2xl shadow-premium border border-white/20 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="max-h-64 overflow-y-auto scrollbar-hide space-y-1">
+                                    {[
+                                        { id: 'all', label: 'All Bookings', count: bookings.length, color: 'bg-primary' },
+                                        { id: 'active', label: 'Live/Active', count: activeBookings.length, color: 'bg-emerald-500' },
+                                        { id: 'completed', label: 'History/Completed', count: completedBookings.length, color: 'bg-gray-400' }
+                                    ].map(opt => (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => {
+                                                setFilter(opt.id as any);
+                                                setIsStatusDropdownOpen(false);
+                                            }}
+                                            className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center justify-between transition-all ${filter === opt.id ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-gray-50/50 text-gray-400'}`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-1.5 h-1.5 rounded-full ${filter === opt.id ? 'bg-white' : opt.color}`} />
+                                                {opt.label}
+                                            </div>
+                                            <span className={`text-[10px] ${filter === opt.id ? 'bg-white/20' : 'bg-gray-100'} px-2 py-0.5 rounded-full`}>{opt.count}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
-            </Card>
+
+                {/* Payment Status Dropdown */}
+                <div className="relative">
+                    <button
+                        onClick={() => setIsPaymentDropdownOpen(!isPaymentDropdownOpen)}
+                        className="px-5 py-3 bg-white border border-gray-100 rounded-2xl text-[11px] font-black uppercase tracking-wider text-[#0A2540] flex items-center gap-3 shadow-sm hover:border-primary transition-all active:scale-95 group min-w-[200px]"
+                    >
+                        <div className={`w-2 h-2 rounded-full ${paymentFilter === 'all' ? 'bg-primary' : paymentFilter === 'paid' ? 'bg-emerald-500' : 'bg-amber-400'}`} />
+                        <span>{paymentFilter === 'all' ? 'All Payments' : paymentFilter === 'paid' ? 'Paid Only' : 'Pending/Cash'}</span>
+                        <ChevronDownIcon className={`w-4 h-4 ml-auto transition-transform duration-500 ${isPaymentDropdownOpen ? 'rotate-180 text-primary' : 'text-gray-300 group-hover:text-primary'}`} />
+                    </button>
+
+                    {isPaymentDropdownOpen && (
+                        <>
+                            <div className="fixed inset-0 z-40" onClick={() => setIsPaymentDropdownOpen(false)} />
+                            <div className="absolute top-full left-0 mt-2 w-full bg-white/80 backdrop-blur-xl rounded-2xl shadow-premium border border-white/20 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="max-h-64 overflow-y-auto scrollbar-hide space-y-1">
+                                    {[
+                                        { id: 'all', label: 'All Payments', color: 'bg-primary' },
+                                        { id: 'paid', label: 'Paid Only', color: 'bg-emerald-500' },
+                                        { id: 'pending', label: 'Pending/Cash', color: 'bg-amber-400' }
+                                    ].map(opt => (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => {
+                                                setPaymentFilter(opt.id as any);
+                                                setIsPaymentDropdownOpen(false);
+                                            }}
+                                            className={`w-full text-left px-4 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center gap-3 transition-all ${paymentFilter === opt.id ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-gray-50/50 text-gray-400'}`}
+                                        >
+                                            <div className={`w-1.5 h-1.5 rounded-full ${paymentFilter === opt.id ? 'bg-white' : opt.color}`} />
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
 
             {/* Mobile Card View */}
             <div className="md:hidden space-y-4">

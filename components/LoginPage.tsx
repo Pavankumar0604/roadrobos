@@ -28,7 +28,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, onBackToHome, adm
         // Map the backend user to AdminUser type
         const adminUser: AdminUser = {
           id: result.user.id,
-          name: result.user.name || 'Admin',
+          name: result.user.user_metadata?.name || 'Admin',
           email: result.user.email,
           role: {
             id: 'role-super-admin',

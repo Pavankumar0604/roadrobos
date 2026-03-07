@@ -315,36 +315,26 @@ app.post('/api/bookings/initiate', async (req, res) => {
     const bookingId = `BK${Date.now()}`;
 
     // Try to create rider info and booking in DB, but continue even if it fails
-    try {
-      let riderInfoId;
-      if (user) {
-        riderInfoId = await RiderInfo.create({
-          ...user,
-          user_id: null
-        });
-      }
+    const riderInfoId = user ? await RiderInfo.create({ ...user, user_id: null }) : null;
 
-      await Booking.create({
-        booking_id: bookingId,
-        user_id: null,
-        rider_info_id: riderInfoId,
-        bike_id: bike.id,
-        pickup_date: searchParams.pickupDate,
-        pickup_time: searchParams.pickupTime,
-        drop_date: searchParams.dropDate,
-        drop_time: searchParams.dropTime,
-        helmet: addons.helmet,
-        insurance: addons.insurance,
-        payment_mode: paymentMode,
-        base_fare: baseFare,
-        platform_fee: platformFee,
-        total_payable: totalPayable,
-        payment_status: 'PENDING',
-        status: 'pending'
-      });
-    } catch (dbError) {
-      console.log('[BOOKING] Database unavailable, continuing without DB storage:', dbError.message);
-    }
+    await Booking.create({
+      booking_id: bookingId,
+      user_id: null,
+      rider_info_id: riderInfoId,
+      bike_id: bike.id,
+      pickup_date: searchParams.pickupDate,
+      pickup_time: searchParams.pickupTime,
+      drop_date: searchParams.dropDate,
+      drop_time: searchParams.dropTime,
+      helmet: addons.helmet,
+      insurance: addons.insurance,
+      payment_mode: paymentMode,
+      base_fare: baseFare,
+      platform_fee: platformFee,
+      total_payable: totalPayable,
+      payment_status: 'PENDING',
+      status: 'pending'
+    });
 
     // Create Razorpay order (this should work regardless of DB)
     const options = {
@@ -356,20 +346,16 @@ app.post('/api/bookings/initiate', async (req, res) => {
     const order = await razorpay.orders.create(options);
 
     // Try to create transaction record, but don't fail if DB is unavailable
-    try {
-      await Transaction.create({
-        transaction_id: order.id,
-        booking_id: bookingId,
-        user_id: null,
-        customer_name: user?.userName || 'Customer',
-        amount: totalPayable,
-        currency: 'INR',
-        razorpay_order_id: order.id,
-        status: 'pending'
-      });
-    } catch (dbError) {
-      console.log('[BOOKING] Could not save transaction to DB:', dbError.message);
-    }
+    await Transaction.create({
+      transaction_id: order.id,
+      booking_id: bookingId,
+      user_id: null,
+      customer_name: user?.userName || 'Customer',
+      amount: totalPayable,
+      currency: 'INR',
+      razorpay_order_id: order.id,
+      status: 'pending'
+    });
 
     console.log('[BOOKING] Initiated online booking:', bookingId);
 
@@ -402,43 +388,29 @@ app.post('/api/bookings/cash', async (req, res) => {
     console.log('[BOOKING] Creating cash booking:', bookingId);
 
     // Try to save to database if available, but don't fail if it's not
-    try {
-      if (RiderInfo && Booking) {
-        let riderInfoId;
-        if (user) {
-          riderInfoId = await RiderInfo.create({
-            ...user,
-            user_id: null
-          });
-        }
+    const riderInfoId = user ? await RiderInfo.create({ ...user, user_id: null }) : null;
 
-        await Booking.create({
-          booking_id: bookingId,
-          user_id: null,
-          rider_info_id: riderInfoId,
-          bike_id: bike.id,
-          pickup_date: searchParams.pickupDate,
-          pickup_time: searchParams.pickupTime,
-          drop_date: searchParams.dropDate,
-          drop_time: searchParams.dropTime,
-          helmet: addons.helmet,
-          insurance: addons.insurance,
-          payment_mode: paymentMode,
-          base_fare: baseFare,
-          platform_fee: platformFee,
-          total_payable: totalPayable,
-          payment_status: 'PENDING',
-          status: 'confirmed'
-        });
-        console.log('[BOOKING] Saved to database successfully');
-      }
-    } catch (dbError) {
-      console.log('[BOOKING] Database unavailable, continuing without DB storage:', dbError.message);
-    }
+    await Booking.create({
+      booking_id: bookingId,
+      user_id: null,
+      rider_info_id: riderInfoId,
+      bike_id: bike.id,
+      pickup_date: searchParams.pickupDate,
+      pickup_time: searchParams.pickupTime,
+      drop_date: searchParams.dropDate,
+      drop_time: searchParams.dropTime,
+      helmet: addons.helmet,
+      insurance: addons.insurance,
+      payment_mode: paymentMode,
+      base_fare: baseFare,
+      platform_fee: platformFee,
+      total_payable: totalPayable,
+      payment_status: 'PENDING',
+      status: 'confirmed'
+    });
 
     console.log('[BOOKING] Cash booking created:', bookingId);
 
-    // Always return success
     res.json({
       success: true,
       bookingId: bookingId,
@@ -446,13 +418,7 @@ app.post('/api/bookings/cash', async (req, res) => {
     });
   } catch (error) {
     console.error('Cash booking error:', error);
-    // Even on error, generate a booking ID and return success for demo purposes
-    const fallbackBookingId = `BK${Date.now()}`;
-    res.json({
-      success: true,
-      bookingId: fallbackBookingId,
-      message: 'Booking confirmed. Please pay cash at pickup.'
-    });
+    res.status(500).json({ error: 'Failed to create booking', details: error.message });
   }
 });
 
