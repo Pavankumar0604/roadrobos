@@ -336,7 +336,8 @@ const BikeFormModal: React.FC<{ bike: Bike | null; onSave: (bikeData: Bike) => v
     const [formData, setFormData] = useState<Partial<Bike>>(bike || {
         name: '', type: 'Scooter', availability: 'Available', specs: { cc: '', transmission: 'Automatic' },
         price: { hour: 0, day: 0, week: 0, month: 0 }, deposit: 0,
-        images: ['', '', ''], kmLimit: { hour: 0, day: 0, week: 0, month: 0 }, excessKmCharge: 0, minBookingDur: { hour: 0, day: 0 }
+        images: ['', '', ''], kmLimit: { hour: 0, day: 0, week: 0, month: 0 }, excessKmCharge: 0, minBookingDur: { hour: 0, day: 0 },
+        colorVariants: []
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -387,6 +388,50 @@ const BikeFormModal: React.FC<{ bike: Bike | null; onSave: (bikeData: Bike) => v
                         <div><label>Image URL 1</label><input type="text" name="images.0" value={formData.images?.[0]} onChange={handleChange} className={inputClass} /></div>
                         <div><label>Image URL 2</label><input type="text" name="images.1" value={formData.images?.[1]} onChange={handleChange} className={inputClass} /></div>
                         <div><label>Image URL 3</label><input type="text" name="images.2" value={formData.images?.[2]} onChange={handleChange} className={inputClass} /></div>
+
+                        <div className="pt-4 border-t">
+                            <label className="text-sm font-bold block mb-2 text-primary uppercase tracking-widest">Color Variants</label>
+                            <div className="space-y-2">
+                                {(formData.colorVariants || []).map((cv, idx) => (
+                                    <div key={idx} className="flex gap-2 items-center">
+                                        <input
+                                            placeholder="Color Name (e.g. Silver)"
+                                            value={cv.colorName}
+                                            onChange={(e) => {
+                                                const newVariants = [...(formData.colorVariants || [])];
+                                                newVariants[idx].colorName = e.target.value;
+                                                setFormData(prev => ({ ...prev, colorVariants: newVariants }));
+                                            }}
+                                            className={`${inputClass} mt-0`}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    colorVariants: prev.colorVariants?.filter((_, i) => i !== idx)
+                                                }));
+                                            }}
+                                            className="p-2 text-red-500 hover:bg-red-50 rounded"
+                                        >
+                                            <XIcon className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            colorVariants: [...(prev.colorVariants || []), { colorName: '', imageUrl: '' }]
+                                        }));
+                                    }}
+                                    className="text-xs font-bold text-secondary uppercase bg-secondary/5 hover:bg-secondary/10 px-3 py-2 rounded-lg transition-colors flex items-center gap-2 mt-2"
+                                >
+                                    <PlusIcon className="w-3.5 h-3.5" /> Add Color Variant
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div className="p-4 bg-gray-50 flex justify-end gap-4">
                         <button type="button" onClick={onClose} className="border border-gray-300 font-semibold py-2 px-4 rounded-lg">Cancel</button>

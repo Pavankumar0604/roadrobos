@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     CogIcon,
@@ -55,44 +55,57 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
     const inventoryUnits = useMemo(() => bikeUnits, [bikeUnits]);
 
     const [selectedBikeId, setSelectedBikeId] = useState<number | null>(baseBikes[0]?.id || null);
+    const [selectedColor, setSelectedColor] = useState<string>('');
     const [unitNumber, setUnitNumber] = useState<string>('');
     const [regNumber, setRegNumber] = useState<string>('');
     const [isDeploying, setIsDeploying] = useState(false);
     const [isHoveringDeploy, setIsHoveringDeploy] = useState(false);
 
+    // Reset color when model changes
+    useEffect(() => {
+        setSelectedColor('');
+    }, [selectedBikeId]);
+
     const selectedBike = useMemo(() => baseBikes.find(b => b.id === selectedBikeId), [baseBikes, selectedBikeId]);
 
     const activeAesthetic = useMemo(() => {
-        const name = selectedBike?.name.toLowerCase() || '';
-        if (name.includes('silver')) return COLOR_CONFIGS.silver;
-        if (name.includes('black')) return COLOR_CONFIGS.black;
-        if (name.includes('red')) return COLOR_CONFIGS.red;
-        if (name.includes('blue')) return COLOR_CONFIGS.blue;
+        if (selectedColor) {
+            const name = selectedColor.toLowerCase();
+            if (name.includes('silver')) return COLOR_CONFIGS.silver;
+            if (name.includes('black')) return COLOR_CONFIGS.black;
+            if (name.includes('red')) return COLOR_CONFIGS.red;
+            if (name.includes('blue')) return COLOR_CONFIGS.blue;
+        }
         return COLOR_CONFIGS.default;
-    }, [selectedBike]);
+    }, [selectedColor]);
 
     const previewBike = useMemo(() => {
         const paddedNum = unitNumber.padStart(4, '0');
+        const rrsId = `RRS${paddedNum}`;
         return {
-            uniqueId: `RRS${paddedNum}`,
+            uniqueId: rrsId,
             chassisNumber: `CH-KA01-${BASE_CHASSIS_NUM + inventoryUnits.length}`,
-            color: activeAesthetic.label,
+            color: selectedColor || 'Standard',
             modelName: selectedBike?.name || 'Zelio Eeva E',
-            registration: regNumber || 'KA-01-XX-0000'
+            registration: regNumber || 'NOT ASSIGNED'
         };
-    }, [unitNumber, regNumber, activeAesthetic, inventoryUnits, selectedBike]);
+    }, [unitNumber, regNumber, selectedColor, inventoryUnits, selectedBike]);
 
     const handleDeploy = () => {
-        if (!unitNumber || !selectedBikeId) return;
+        if (!unitNumber || !selectedBikeId || !selectedColor) {
+            alert("Please provide Unique ID and select a Color Variant.");
+            return;
+        }
 
         setIsDeploying(true);
         setTimeout(() => {
             confetti({ particleCount: 60, spread: 50, origin: { y: 0.7 } });
 
-            onDeploy(selectedBikeId, previewBike.uniqueId, regNumber, activeAesthetic.label);
+            onDeploy(selectedBikeId, previewBike.uniqueId, regNumber, selectedColor);
             setUnitNumber('');
             setRegNumber('');
             setIsDeploying(false);
+            // We keep the selected bike and color for batch addition if needed
 
             try {
                 const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -152,8 +165,50 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
                             </div>
                         </motion.div>
 
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-2.5">
+                            <label className="text-[10px] font-black uppercase text-[#0A2540] tracking-[0.15em]">Step 2: Assign Unique ID (Required)</label>
+                            <div className="flex items-center gap-0">
+                                <div className="h-[54px] bg-gray-100 px-4 flex items-center justify-center rounded-l-xl border-2 border-r-0 border-gray-100 font-black text-gray-400 font-mono tracking-tighter shadow-inner">
+                                    <span className="text-sm">RRS</span>
+                                </div>
+                                <input
+                                    type="text"
+                                    value={unitNumber}
+                                    onChange={(e) => setUnitNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
+                                    className="flex-1 h-[54px] bg-white border-2 border-gray-100 p-4 rounded-r-xl text-lg font-mono font-black text-primary outline-none focus:border-primary transition-all tabular-nums"
+                                    placeholder="0001"
+                                />
+                            </div>
+                        </motion.div>
+
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-2.5">
-                            <label className="text-[10px] font-black uppercase text-[#0A2540] tracking-[0.15em]">Step 3: Registration Number</label>
+                            <label className="text-[10px] font-black uppercase text-[#0A2540] tracking-[0.15em]">Step 3: Select Color Variant</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                {(selectedBike?.colorVariants || []).map((cv, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => setSelectedColor(cv.colorName)}
+                                        className={cn(
+                                            "p-3 rounded-xl border-2 text-xs font-bold transition-all flex items-center gap-2",
+                                            selectedColor === cv.colorName
+                                                ? "border-primary bg-primary/5 text-primary"
+                                                : "border-gray-100 hover:border-gray-200 text-gray-400 bg-white"
+                                        )}
+                                    >
+                                        <div className="w-3 h-3 rounded-full shadow-inner" style={{ backgroundColor: COLOR_CONFIGS[cv.colorName.toLowerCase()]?.hex || '#ccc' }} />
+                                        {cv.colorName}
+                                    </button>
+                                ))}
+                                {(!selectedBike?.colorVariants || selectedBike.colorVariants.length === 0) && (
+                                    <p className="col-span-2 text-[10px] text-amber-500 font-bold italic p-2 bg-amber-50 rounded-lg">
+                                        No colors defined for this model. Update in Admin Catalog.
+                                    </p>
+                                )}
+                            </div>
+                        </motion.div>
+
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-2.5">
+                            <label className="text-[10px] font-black uppercase text-[#0A2540] tracking-[0.15em]">Step 4: Plate Number (Optional)</label>
                             <input
                                 type="text"
                                 value={regNumber}
@@ -274,7 +329,11 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
                                 <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                             </div>
                             <h4 className="text-sm font-bold text-white truncate mb-1">{unit.bikes?.name || 'Asset'}</h4>
-                            <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">{unit.registration_number || 'REG: PENDING'}</p>
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLOR_CONFIGS[unit.color_name?.toLowerCase()]?.hex || '#666' }} />
+                                <p className="text-[9px] font-black text-white/70 uppercase tracking-[0.2em]">{unit.color_name || 'Standard'}</p>
+                            </div>
+                            <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mt-1">{unit.registration_number || 'REG: PENDING'}</p>
 
                             <div className="mt-4 flex items-center justify-between pt-4 border-t border-white/5">
                                 <span className="text-[8px] font-black text-white/30 uppercase tracking-widest">{new Date(unit.created_at).toLocaleDateString()}</span>
@@ -300,6 +359,7 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
                             <tr className="bg-white text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 border-b border-gray-100">
                                 <th className="px-8 py-5">Asset ID</th>
                                 <th className="px-8 py-5">Variant / Model</th>
+                                <th className="px-8 py-5">Color</th>
                                 <th className="px-8 py-5">Plate Number</th>
                                 <th className="px-8 py-5">Status</th>
                                 {onDelete && <th className="px-8 py-5 text-right">Actions</th>}
@@ -324,13 +384,21 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
                                                 <span className="text-sm font-bold text-gray-700">{unit.bikes?.name || 'Base Model'}</span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-5">
-                                            <span className="text-xs font-black text-primary font-mono bg-primary/5 px-2 py-1 rounded border border-primary/10">{unit.registration_number || 'NOT SET'}</span>
+                                        <td className="px-8 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2.5 h-2.5 rounded-full shadow-inner border border-black/10" style={{ backgroundColor: COLOR_CONFIGS[unit.color_name?.toLowerCase()]?.hex || '#ccc' }} />
+                                                <span className="text-sm font-bold text-[#0A2540]">{unit.color_name || 'Standard'}</span>
+                                            </div>
                                         </td>
-                                        <td className="px-8 py-5">
+                                        <td className="px-8 py-4">
+                                            <span className="text-xs font-mono font-black text-gray-400">{unit.registration_number || '-'}</span>
+                                        </td>
+                                        <td className="px-8 py-4">
                                             <span className={cn(
-                                                "text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded",
-                                                unit.status === 'Ready' ? "bg-emerald-50 text-emerald-600" : "bg-orange-50 text-orange-600"
+                                                "text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full",
+                                                unit.status === 'Ready' ? "bg-emerald-50 text-emerald-600 border border-emerald-100" :
+                                                    unit.status === 'In Service' ? "bg-blue-50 text-blue-600 border border-blue-100" :
+                                                        "bg-amber-50 text-amber-600 border border-amber-100"
                                             )}>
                                                 {unit.status}
                                             </span>

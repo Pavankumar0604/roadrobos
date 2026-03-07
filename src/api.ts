@@ -137,7 +137,10 @@ export const bikeAPI = {
             images: bike.bike_images?.length > 0
                 ? bike.bike_images.sort((a: any, b: any) => a.display_order - b.display_order).map((img: any) => getBikeImage(img.image_url, bike.name))
                 : [getFallbackImage(bike.name)],
-            colorVariants: bike.bike_color_variants || undefined
+            colorVariants: (bike.bike_color_variants || []).map((cv: any) => ({
+                colorName: cv.color_name,
+                imageUrl: cv.image_url
+            }))
         })).filter((b: any) => b.images !== undefined).sort((a: any, b: any) => {
             const statusOrder = { 'Available': 0, 'Booked': 1, 'Maintenance': 2, 'Coming Soon': 3 };
             const orderA = statusOrder[a.availability as keyof typeof statusOrder] ?? 99;
@@ -602,6 +605,16 @@ export const adminAPI = {
             }
         }
 
+        // 4. Insert color variants if any
+        if (data.colorVariants && data.colorVariants.length > 0) {
+            const colorInserts = data.colorVariants.map((cv: any) => ({
+                bike_id: bike.id,
+                color_name: cv.colorName,
+                image_url: cv.imageUrl || ''
+            }));
+            await supabase.from('bike_color_variants').insert(colorInserts);
+        }
+
         return bike;
     },
 
@@ -660,28 +673,35 @@ export const adminAPI = {
             .select()
             .single();
 
-        return handleResponse({ data: bike, error, status });
-
         // 3. Update images (Delete all and re-insert)
-        if (data.images) {
-            // Delete existing
+        if (data.images !== undefined) { // Check if images array was provided in the update data
             await supabase.from('bike_images').delete().eq('bike_id', id);
-
-            // Insert new
-            const imageInserts = data.images
-                .filter((url: string) => url && url.trim() !== '')
-                .map((url: string, index: number) => ({
-                    bike_id: id,
-                    image_url: url,
-                    display_order: index + 1
-                }));
-
-            if (imageInserts.length > 0) {
+            if (data.images.length > 0) {
+                const imageInserts = data.images
+                    .filter((url: string) => url && url.trim() !== '')
+                    .map((url: string, index: number) => ({
+                        bike_id: id,
+                        image_url: url,
+                        display_order: index + 1
+                    }));
                 await supabase.from('bike_images').insert(imageInserts);
             }
         }
 
-        return bike;
+        // 4. Update color variants (Delete all and re-insert)
+        if (data.colorVariants !== undefined) { // Check if colorVariants array was provided in the update data
+            await supabase.from('bike_color_variants').delete().eq('bike_id', id);
+            if (data.colorVariants.length > 0) {
+                const colorInserts = data.colorVariants.map((cv: any) => ({
+                    bike_id: id,
+                    color_name: cv.colorName,
+                    image_url: cv.imageUrl || ''
+                }));
+                await supabase.from('bike_color_variants').insert(colorInserts);
+            }
+        }
+
+        return handleResponse({ data: bike, error, status });
     },
 
     deleteBike: async (id: number) => {
