@@ -1,4 +1,4 @@
-import { type Bike, type FAQItem, type City, type Offer, type CaseStudy, type PartnerFAQ, type AdminUser, type Role, type Employee, type Enquiry, type Review, type Transaction, type SiteContent, type PressRelease, type JobOpening, type Application } from './types';
+import { type Bike, type FAQItem, type City, type Offer, type CaseStudy, type PartnerFAQ, type AdminUser, type Role, type Employee, type Enquiry, type Review, type Transaction, type SiteContent, type PressRelease, type JobOpening, type Application, type PickupLocation } from './types';
 import { bikeImages } from './src/assets/bikeImports';
 
 export const bikes: Bike[] = [
@@ -9,12 +9,15 @@ export const bikes: Bike[] = [
     images: bikeImages.zeeoneevasilver, // Silver variant
     type: 'Electric',
     specs: { cc: 'Top Speed: 50 km/h', transmission: 'Automatic' },
-    price: { hour: 35, day: 450, week: 1850, month: 7400, quarterly: 20000, yearly: 70000 },
+    price: { hour: 35, day: 450, week: 1850, month: 6999, quarterly: 35000, yearly: 70000 },
     minBookingDur: { hour: 10, day: 1 },
     kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
     excessKmCharge: 4,
     deposit: 2000,
     availability: 'Available',
+    totalStock: 15,
+    bookedCount: 5,
+    availableCount: 10,
   },
   {
     id: 802,
@@ -22,12 +25,15 @@ export const bikes: Bike[] = [
     images: bikeImages.zeeoneevaered, // Red variant
     type: 'Electric',
     specs: { cc: 'Top Speed: 50 km/h', transmission: 'Automatic' },
-    price: { hour: 35, day: 450, week: 1850, month: 7400, quarterly: 20000, yearly: 70000 },
+    price: { hour: 35, day: 450, week: 1850, month: 6999, quarterly: 35000, yearly: 70000 },
     minBookingDur: { hour: 10, day: 1 },
     kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
     excessKmCharge: 4,
     deposit: 2000,
     availability: 'Available',
+    totalStock: 10,
+    bookedCount: 3,
+    availableCount: 7,
   },
   {
     id: 803,
@@ -35,12 +41,15 @@ export const bikes: Bike[] = [
     images: bikeImages.zeeoneevaeblue, // Blue variant
     type: 'Electric',
     specs: { cc: 'Top Speed: 50 km/h', transmission: 'Automatic' },
-    price: { hour: 35, day: 450, week: 1850, month: 7400, quarterly: 20000, yearly: 70000 },
+    price: { hour: 35, day: 450, week: 1850, month: 6999, quarterly: 35000, yearly: 70000 },
     minBookingDur: { hour: 10, day: 1 },
     kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
     excessKmCharge: 4,
     deposit: 2000,
     availability: 'Available',
+    totalStock: 12,
+    bookedCount: 4,
+    availableCount: 8,
   },
   {
     id: 804,
@@ -48,12 +57,15 @@ export const bikes: Bike[] = [
     images: bikeImages.zeeoneevaewhite, // White variant
     type: 'Electric',
     specs: { cc: 'Top Speed: 50 km/h', transmission: 'Automatic' },
-    price: { hour: 35, day: 450, week: 1850, month: 7400, quarterly: 20000, yearly: 70000 },
+    price: { hour: 35, day: 450, week: 1850, month: 6999, quarterly: 35000, yearly: 70000 },
     minBookingDur: { hour: 10, day: 1 },
     kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
     excessKmCharge: 4,
     deposit: 2000,
     availability: 'Available',
+    totalStock: 5,
+    bookedCount: 2,
+    availableCount: 3,
   },
   {
     id: 805,
@@ -61,12 +73,15 @@ export const bikes: Bike[] = [
     images: bikeImages.zeeoneevaeblack, // Black variant
     type: 'Electric',
     specs: { cc: 'Top Speed: 50 km/h', transmission: 'Automatic' },
-    price: { hour: 35, day: 450, week: 1850, month: 7400, quarterly: 20000, yearly: 70000 },
+    price: { hour: 35, day: 450, week: 1850, month: 6999, quarterly: 35000, yearly: 70000 },
     minBookingDur: { hour: 10, day: 1 },
     kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
     excessKmCharge: 4,
     deposit: 2000,
     availability: 'Available',
+    totalStock: 20,
+    bookedCount: 8,
+    availableCount: 12,
   },
   {
     id: 6,
@@ -74,7 +89,7 @@ export const bikes: Bike[] = [
     images: bikeImages.ather450x,
     type: 'Electric',
     specs: { cc: 'Electric', transmission: 'Automatic' },
-    price: { hour: 40, day: 443, week: 3100, month: 13300, quarterly: 39900, yearly: 159600 },
+    price: { hour: 40, day: 443, week: 3100, month: 6999, quarterly: 35000, yearly: 159600 },
     minBookingDur: { hour: 10, day: 1 },
     kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
     excessKmCharge: 4,
@@ -88,7 +103,7 @@ export const bikes: Bike[] = [
     images: bikeImages.hondaactiva,
     type: 'Scooter',
     specs: { cc: '110cc', transmission: 'Automatic' },
-    price: { hour: 40, day: 443, week: 3100, month: 13300, quarterly: 39900, yearly: 159600 },
+    price: { hour: 40, day: 443, week: 3100, month: 6999, quarterly: 35000, yearly: 159600 },
     minBookingDur: { hour: 10, day: 1 },
     kmLimit: { hour: 10, day: 100, week: 600, month: 2000 },
     excessKmCharge: 4,
@@ -101,7 +116,7 @@ export const bikes: Bike[] = [
     images: bikeImages.royalenfieldclassic,
     type: 'Gear',
     specs: { cc: '350cc', transmission: 'Manual' },
-    price: { hour: 120, day: 1800, week: 10000, month: 30000, quarterly: 81000, yearly: 288000 },
+    price: { hour: 120, day: 1800, week: 10000, month: 6999, quarterly: 35000, yearly: 288000 },
     minBookingDur: { hour: 10, day: 1 },
     kmLimit: { hour: 10, day: 150, week: 900, month: 3000 },
     excessKmCharge: 8,
@@ -114,7 +129,7 @@ export const bikes: Bike[] = [
     images: bikeImages.bmwg310r,
     type: 'Superbike',
     specs: { cc: '313cc', transmission: 'Manual' },
-    price: { hour: 160, day: 1890, week: 13200, month: 56800, quarterly: 170400, yearly: 681600 },
+    price: { hour: 160, day: 1890, week: 13200, month: 6999, quarterly: 35000, yearly: 681600 },
     minBookingDur: { hour: 10, day: 1 },
     kmLimit: { hour: 10, day: 200, week: 1200, month: 4000 },
     excessKmCharge: 12,
@@ -127,7 +142,7 @@ export const bikes: Bike[] = [
     images: bikeImages.tvsjupiter125,
     type: 'Scooter',
     specs: { cc: '125cc', transmission: 'Automatic' },
-    price: { hour: 40, day: 443, week: 3100, month: 13300, quarterly: 39900, yearly: 159600 },
+    price: { hour: 40, day: 443, week: 3100, month: 6999, quarterly: 35000, yearly: 159600 },
     minBookingDur: { hour: 10, day: 1 },
     kmLimit: { hour: 10, day: 100, week: 600, month: 2000 },
     excessKmCharge: 4,
@@ -140,12 +155,64 @@ export const bikes: Bike[] = [
     images: bikeImages.yamahamt15,
     type: 'Gear',
     specs: { cc: '155cc', transmission: 'Manual' },
-    price: { hour: 40, day: 443, week: 3100, month: 13300, quarterly: 39900, yearly: 159600 },
+    price: { hour: 40, day: 443, week: 3100, month: 6999, quarterly: 35000, yearly: 159600 },
     minBookingDur: { hour: 10, day: 1 },
     kmLimit: { hour: 10, day: 150, week: 900, month: 3000 },
     excessKmCharge: 6,
     deposit: 2000,
     availability: 'Coming Soon',
+  },
+  // --- Service Demo Bikes ---
+  {
+    id: 901,
+    name: 'Ather 450X (Demo Pending)',
+    images: bikeImages.ather450x,
+    type: 'Electric',
+    specs: { cc: 'Electric', transmission: 'Automatic' },
+    price: { hour: 40, day: 443, week: 3100, month: 6999, quarterly: 35000, yearly: 159600 },
+    minBookingDur: { hour: 10, day: 1 },
+    kmLimit: { hour: 10, day: 120, week: 700, month: 2500 },
+    excessKmCharge: 4,
+    deposit: 2000,
+    availability: 'Maintenance',
+    service_status: 'pending',
+    healthScore: 45,
+    technicianAvatar: 'https://i.pravatar.cc/150?u=tech1',
+    technicianName: 'Rajesh K.',
+  },
+  {
+    id: 902,
+    name: 'Royal Enfield (Demo Active)',
+    images: bikeImages.royalenfieldclassic,
+    type: 'Gear',
+    specs: { cc: '350cc', transmission: 'Manual' },
+    price: { hour: 120, day: 1800, week: 10000, month: 6999, quarterly: 35000, yearly: 288000 },
+    minBookingDur: { hour: 10, day: 1 },
+    kmLimit: { hour: 10, day: 150, week: 900, month: 3000 },
+    excessKmCharge: 8,
+    deposit: 2500,
+    availability: 'Service',
+    service_status: 'in_progress',
+    healthScore: 78,
+    technicianAvatar: 'https://i.pravatar.cc/150?u=tech2',
+    technicianName: 'Suresh M.',
+  },
+  {
+    id: 903,
+    name: 'Honda Activa (Demo Done)',
+    images: bikeImages.hondaactiva,
+    type: 'Scooter',
+    specs: { cc: '110cc', transmission: 'Automatic' },
+    price: { hour: 40, day: 443, week: 3100, month: 13300, quarterly: 39900, yearly: 159600 },
+    minBookingDur: { hour: 10, day: 1 },
+    kmLimit: { hour: 10, day: 100, week: 600, month: 2000 },
+    excessKmCharge: 4,
+    deposit: 1000,
+    availability: 'Service',
+    service_status: 'completed',
+    healthScore: 100,
+    technicianAvatar: 'https://i.pravatar.cc/150?u=tech1',
+    technicianName: 'Rajesh K.',
   },
 ];
 
@@ -179,8 +246,12 @@ export const faqData: FAQItem[] = [
 
 export const cities: City[] = [
   // Karnataka Cities (30)
-  { name: 'Bangalore', image: 'https://source.unsplash.com/200x200/?Bangalore,city' },
-  { name: 'Bangalore Airport', image: 'https://source.unsplash.com/200x200/?airport,bangalore' },
+  { name: 'Bangalore North', image: '' },
+  { name: 'Bangalore South', image: '' },
+  { name: 'Bangalore West', image: '' },
+  { name: 'Bangalore East', image: '' },
+  { name: 'Bangalore Central', image: '' },
+  { name: 'Bangalore Airport', image: '' },
   { name: 'Mysore', image: 'https://source.unsplash.com/200x200/?Mysore' },
   { name: 'Mangalore', image: 'https://source.unsplash.com/200x200/?Mangalore' },
   { name: 'Hubli-Dharwad', image: 'https://source.unsplash.com/200x200/?Hubli' },
@@ -454,13 +525,13 @@ export const initialEmployees: Employee[] = [
   { id: 'e5', name: 'Chris Evans', email: 'chris.e@roadrobos.com', role: 'Operations', status: 'Active' },
 ];
 
-export const pickupLocations: string[] = [
-  'Babusapalya',
-  'Shivajinagar',
-  'Jayanagar',
-  'Koramangala',
-  'Ejipura',
-  'Kanakapura Road'
+export const pickupLocations: PickupLocation[] = [
+  { name: 'Babusapalya', status: 'active' },
+  { name: 'Shivajinagar', status: 'active' },
+  { name: 'Jayanagar', status: 'busy' },
+  { name: 'Koramangala', status: 'busy' },
+  { name: 'Ejipura', status: 'unavailable' },
+  { name: 'Kanakapura Road', status: 'unavailable' }
 ];
 
 export const enquiriesData: Enquiry[] = [

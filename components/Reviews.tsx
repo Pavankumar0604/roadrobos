@@ -9,6 +9,10 @@ import mindmeshLogo from '../src/assets/logos/mindmeshlogo.png';
 import zelioLogo from '../src/assets/logos/zeliologo.png';
 import flowattLogo from '../src/assets/logos/flowattlogo.webp';
 import razorpayLogo from '../src/assets/logos/razorpaylogo.png';
+import zomatoLogoLocal from '../src/assets/logos/zomato.png';
+import swiggyLogoLocal from '../src/assets/logos/swiggy.png';
+
+// Removed inline SVGs to restore original GitHub logos
 
 interface ReviewsProps {
   reviews: Review[];
@@ -66,21 +70,20 @@ const Reviews: React.FC<ReviewsProps> = ({ reviews }) => {
                 <h3 className="text-lg font-heading font-extrabold uppercase tracking-widest text-primary mb-4">Our Trusted Partners</h3>
                 <p className="text-gray-600 text-sm mb-6">We collaborate with industry leaders to ensure a secure and reliable experience for you.</p>
                 <div className="flex flex-col items-center gap-y-8">
-                  {/* Row 1: AmpUp Logo */}
-                  <div className="w-full flex justify-center">
+                  {/* Row 1: Primary Partners */}
+                  <div className="w-full flex flex-wrap justify-center gap-x-16 gap-y-8">
                     <img src={ampupLogo} alt="AmpUp Logo" className="h-20 hover:scale-110 transition-all duration-300 drop-shadow-md hover:drop-shadow-xl" />
+                    <img src={mindmeshLogo} alt="Mindmesh Logo" className="h-24 brightness-110 contrast-125 hover:scale-110 transition-all duration-300 drop-shadow-md hover:drop-shadow-xl object-contain" />
                   </div>
 
                   {/* Row 2: Other Partners */}
-                  <div className="flex flex-wrap justify-center items-center gap-x-10 gap-y-8">
-                    <img src={mindmeshLogo} alt="Mindmesh Logo" className="h-12 hover:scale-110 transition-transform duration-200" />
-                    <img src={zelioLogo} alt="Zeelio Logo" className="h-9 hover:scale-110 transition-transform duration-200" />
-                    <img src={flowattLogo} alt="Flowatt Logo" className="h-10 hover:scale-110 transition-transform duration-200 invert hue-rotate-180" />
-                    <img src={razorpayLogo} alt="Razorpay Logo" className="h-9 hover:scale-110 transition-transform duration-200" />
-                    <img src="https://1000logos.net/wp-content/uploads/2021/05/Swiggy-logo-768x432.jpg" alt="Swiggy Logo" className="h-10 hover:scale-110 transition-transform duration-200" />
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe Logo" className="h-9 hover:scale-110 transition-transform duration-200" />
-                    <img src="https://logos-world.net/wp-content/uploads/2020/11/Zomato-Logo-700x394.png" alt="Zomato Logo" className="h-8 hover:scale-110 transition-transform duration-200" />
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Porter-logo.png?20190930101009" alt="Porter Logo" className="h-8 hover:scale-110 transition-transform duration-200" />
+                  <div className="flex flex-wrap justify-center items-center gap-x-12 gap-y-10">
+                    <img src={zelioLogo} alt="Zeelio Logo" className="h-8 hover:scale-110 hover:brightness-110 hover:drop-shadow-lg transition-all duration-300" />
+                    <img src={flowattLogo} alt="Flowatt Logo" className="h-9 hover:scale-110 hover:brightness-110 hover:drop-shadow-lg transition-all duration-300 invert hue-rotate-180" />
+                    <img src={razorpayLogo} alt="Razorpay Logo" className="h-8 hover:scale-110 hover:brightness-110 hover:drop-shadow-lg transition-all duration-300" />
+                    <img src={swiggyLogoLocal} alt="Swiggy Logo" className="h-[3rem] hover:scale-110 hover:brightness-110 hover:drop-shadow-lg transition-all duration-300 object-contain" />
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" alt="Stripe Logo" className="h-10 hover:scale-110 hover:brightness-110 hover:drop-shadow-lg transition-all duration-300 object-contain" />
+                    <img src={zomatoLogoLocal} alt="Zomato Logo" className="h-10 hover:scale-110 hover:brightness-110 hover:drop-shadow-lg transition-all duration-300 object-contain" />
                   </div>
                 </div>
               </div>

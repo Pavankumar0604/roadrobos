@@ -37,8 +37,11 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
         const tariffKey = TARIFF_KEY_MAP[activeTariff];
 
         filtered.sort((a, b) => {
-            if (a.availability === 'Coming Soon') return 1;
-            if (b.availability === 'Coming Soon') return -1;
+            const isAComingSoon = a.availability === 'Coming Soon' || a.type !== 'Electric';
+            const isBComingSoon = b.availability === 'Coming Soon' || b.type !== 'Electric';
+            if (isAComingSoon && !isBComingSoon) return 1;
+            if (!isAComingSoon && isBComingSoon) return -1;
+            if (isAComingSoon && isBComingSoon) return 0;
             const priceA = a.price[tariffKey];
             const priceB = b.price[tariffKey];
             if (sortBy === 'price-asc') return priceA - priceB;
@@ -93,7 +96,9 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
 
                 {/* Intro */}
                 <div className="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-sm mb-12">
-                    <p className="text-center text-gray-700">At RoAd RoBo's, we believe renting a bike should be simple, affordable and flexible. Whether you need a ride for a few hours, a full day, or a whole month — choose your duration, pick your bike, and you're good to go.</p>
+                    <p className="text-center text-gray-700 font-bold text-lg">
+                        RoAd RoBo's delivers unmatched affordable pricing coupled with a premium, eco-friendly riding environment for every journey.
+                    </p>
                 </div>
 
                 {/* Filters */}
@@ -143,6 +148,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
                             {displayedBikes.map((bike, index) => {
                                 const { price, priceUnit, kmLimit, kmUnit } = getTariffDetails(bike);
                                 const displayImage = getDisplayImage(bike);
+                                const isComingSoon = bike.availability === 'Coming Soon' || bike.type !== 'Electric';
                                 return (
                                     <tr key={bike.id} className={`border-t ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                                         <td className="p-4">
@@ -175,17 +181,17 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="p-4 text-center font-semibold text-primary">{bike.availability === 'Coming Soon' ? 'N/A' : `₹${price}`}<span className="font-normal text-gray-500 text-xs">{priceUnit}</span></td>
-                                        <td className="p-4 text-center">{bike.availability === 'Coming Soon' ? 'N/A' : <>{kmLimit}<span className="text-xs">{kmUnit}</span></>}</td>
+                                        <td className="p-4 text-center font-semibold text-primary">{isComingSoon ? 'N/A' : `₹${price}`}<span className="font-normal text-gray-500 text-xs">{priceUnit}</span></td>
+                                        <td className="p-4 text-center">{isComingSoon ? 'N/A' : <>{kmLimit}<span className="text-xs">{kmUnit}</span></>}</td>
 
-                                        <td className="p-4 text-center">{bike.availability === 'Coming Soon' ? 'N/A' : `₹${bike.deposit}`}</td>
+                                        <td className="p-4 text-center">{isComingSoon ? 'N/A' : `₹${bike.deposit}`}</td>
                                         <td className="p-4">
                                             <button
                                                 onClick={() => onSelectBike(bike)}
-                                                disabled={bike.availability === 'Coming Soon'}
+                                                disabled={isComingSoon}
                                                 className="bg-primary text-white font-semibold px-4 py-2 rounded-lg hover:bg-opacity-90 transition-all text-xs whitespace-nowrap disabled:bg-gray-400 disabled:cursor-not-allowed"
                                             >
-                                                {bike.availability === 'Coming Soon' ? 'Coming Soon' : 'View Details'}
+                                                {isComingSoon ? 'Coming Soon' : 'View Details'}
                                             </button>
                                         </td>
                                     </tr>
@@ -206,7 +212,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ city, onSelectBike, bik
                 <div className="mt-12 bg-white p-6 rounded-xl shadow-sm">
                     <h3 className="text-lg font-heading font-extrabold uppercase tracking-widest text-primary mb-4">Important Notes</h3>
                     <ul className="space-y-3 text-gray-600 text-sm list-disc list-inside">
-                        <li><span className="font-semibold">Deposit:</span> All rentals require a refundable deposit which will be returned after vehicle inspection.</li>
+                        <li><span className="font-semibold">Deposit:</span> All rentals require a deposit which will be returned after vehicle inspection.</li>
                         <li><span className="font-semibold">Fuel:</span> Fuel costs are not included. Please return the bike with the same fuel level to avoid charges.</li>
                         <li><span className="font-semibold">Late Returns:</span> Extra charges will be applicable if the bike is returned after the scheduled drop-off time.</li>
 

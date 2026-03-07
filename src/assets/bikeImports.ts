@@ -74,3 +74,42 @@ export const bikeImages = {
   // BMW G310 R
   bmwg310r: [bmwg310r1, bmwg310r2, bmwg310r3],
 };
+
+// Helper to resolve db paths like '/bikes/zeeoneevaesilver1.jpg' to the actual bundled asset URL
+export const getBikeImage = (path: string, fallbackName?: string) => {
+  if (!path) return fallbackName ? getFallbackImage(fallbackName) : '';
+
+  // Intercept Google Storage / HTTP URLs in DB and replace with static local bundled assets
+  if (path.includes('storage.googleapis.com') || path.startsWith('http')) {
+    return fallbackName ? getFallbackImage(fallbackName) : path;
+  }
+
+  if (path.startsWith('data:')) return path;
+
+  const allImages = Object.values(bikeImages).flat() as string[];
+  const filename = path.split('/').pop() || '';
+  const nameBase = filename.split('.')[0];
+
+  const match = allImages.find(img => img.includes(nameBase) || img.includes(encodeURIComponent(nameBase)));
+  return match || path;
+};
+
+// Map a bike name to a guaranteed local fallback image
+export const getFallbackImage = (bikeName?: string) => {
+  if (!bikeName) return bikeImages.zeeoneevasilver[0];
+  const nameStr = bikeName.toLowerCase();
+
+  if (nameStr.includes('silver')) return bikeImages.zeeoneevasilver[0];
+  if (nameStr.includes('red')) return bikeImages.zeeoneevaered[0];
+  if (nameStr.includes('blue')) return bikeImages.zeeoneevaeblue[0];
+  if (nameStr.includes('white')) return bikeImages.zeeoneevaewhite[0];
+  if (nameStr.includes('black')) return bikeImages.zeeoneevaeblack[0];
+  if (nameStr.includes('ather')) return bikeImages.ather450x[0];
+  if (nameStr.includes('activa')) return bikeImages.hondaactiva[0];
+  if (nameStr.includes('classic') || nameStr.includes('enfield')) return bikeImages.royalenfieldclassic[0];
+  if (nameStr.includes('jupiter')) return bikeImages.tvsjupiter125[0];
+  if (nameStr.includes('mt-15') || nameStr.includes('mt15') || nameStr.includes('yamaha')) return bikeImages.yamahamt15[0];
+  if (nameStr.includes('bmw')) return bikeImages.bmwg310r[0];
+
+  return bikeImages.zeeoneevasilver[0]; // default EV
+};

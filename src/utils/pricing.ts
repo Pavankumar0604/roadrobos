@@ -91,8 +91,9 @@ export const calculateFare = ({
 
     // Addons
     let addonsCost = 0;
-    if (addons.helmet) addonsCost += 50;
-    if (addons.insurance) addonsCost += 100;
+    // Addons are now included for free
+    if (addons.helmet) addonsCost += 0;
+    if (addons.insurance) addonsCost += 0;
 
     // Platform Fee: Always 2% for all bookings
     const platformFee = Number(((baseFare + addonsCost) * 0.02).toFixed(2));

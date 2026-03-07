@@ -1,4 +1,19 @@
-export type AvailabilityStatus = 'Available' | 'Limited' | 'Coming Soon';
+export type AvailabilityStatus = 'Available' | 'Limited' | 'Coming Soon' | 'Maintenance' | 'Service' | 'In Service' | 'Critical Fix' | 'Booked' | 'Archived' | 'awaitingApproval';
+
+export type LocationStatus = 'active' | 'busy' | 'unavailable';
+
+export interface SparePart {
+  id: string;
+  name: string;
+  cost: number;
+  tax: number;
+  total: number;
+}
+
+export interface PickupLocation {
+  name: string;
+  status: LocationStatus;
+}
 
 export interface Bike {
   id: number;
@@ -30,7 +45,19 @@ export interface Bike {
   excessKmCharge: number;
   deposit: number;
   availability: AvailabilityStatus;
+  service_status?: 'none' | 'pending' | 'in_progress' | 'completed';
+  currentStatus?: string;
+  checks?: Record<string, any>;
+  assignedTech?: string;
+  spareParts?: SparePart[];
+  partsReport?: string;
+  availableCount?: number;
+  totalStock?: number;
+  bookedCount?: number;
   colorVariants?: { colorName: string; imageIndex: number }[];
+  healthScore?: number;
+  technicianAvatar?: string;
+  technicianName?: string;
 }
 
 export interface FAQItem {
@@ -171,7 +198,7 @@ export interface PartnerFAQ {
 
 export interface Role {
   id: string;
-  name: 'Super Admin' | 'Content Editor' | 'Support Staff';
+  name: 'Super Admin' | 'Content Editor' | 'Support Staff' | 'Manager' | 'Service Manager';
   permissions: string[];
 }
 
@@ -258,4 +285,16 @@ export interface Application {
   resumeFileContent: string; // In a real app, this would be a URL to a file in storage.
   submittedAt: string;
   status: 'New' | 'Under Review' | 'Interviewing' | 'Rejected' | 'Hired';
+}
+export interface BikeUnit {
+  id: string;
+  bike_id: number;
+  unit_number: string;
+  color_name: string;
+  registration_number: string;
+  chassis_number: string;
+  status: 'Ready' | 'In Service' | 'Rented';
+  last_service_km: number;
+  created_at: string;
+  bikes?: { name: string; type: string };
 }

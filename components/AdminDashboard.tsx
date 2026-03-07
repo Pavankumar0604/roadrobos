@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { type AdminUser, type Bike, type Offer, type Enquiry, AvailabilityStatus, type Review, type Transaction, type Employee, type SiteContent, type Role, type Application } from '../types';
+import { type AdminUser, type Bike, type BikeUnit, type Offer, type Enquiry, AvailabilityStatus, type Review, type Transaction, type Employee, type SiteContent, type Role, type Application, type PickupLocation, type LocationStatus } from '../types';
 import { CogIcon, LogoutIcon, PencilAltIcon, UsersIcon, ViewGridIcon, XIcon, MenuAlt2Icon, ClipboardListIcon, LocationMarkerIcon, TagIcon, MailIcon, TrashIcon, PlusIcon, StarIcon, CreditCardIcon, DocumentCheckIcon, DocumentDownloadIcon, ChartBarIcon } from './icons/Icons';
 import Card from './Card';
 import { adminRoles } from '../constants';
@@ -13,8 +13,8 @@ interface AdminDashboardProps {
     onLogout: () => void;
     bikes: Bike[];
     setBikes: React.Dispatch<React.SetStateAction<Bike[]>>;
-    locations: string[];
-    setLocations: React.Dispatch<React.SetStateAction<string[]>>;
+    locations: PickupLocation[];
+    setLocations: React.Dispatch<React.SetStateAction<PickupLocation[]>>;
     offers: Offer[];
     setOffers: React.Dispatch<React.SetStateAction<Offer[]>>;
     enquiries: Enquiry[];
@@ -31,12 +31,14 @@ interface AdminDashboardProps {
     setAdminUsers: React.Dispatch<React.SetStateAction<AdminUser[]>>;
     applications: Application[];
     setApplications: React.Dispatch<React.SetStateAction<Application[]>>;
+    bikeUnits: BikeUnit[];
+    setBikeUnits: React.Dispatch<React.SetStateAction<BikeUnit[]>>;
 }
 
 type AdminPanel = 'dashboard' | 'bookings' | 'fleet' | 'locations' | 'offers' | 'enquiries' | 'reviews' | 'transactions' | 'content' | 'users' | 'settings' | 'employees' | 'applications' | 'reports';
 
 const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
-    const { user, onLogout, reviews, setReviews, bikes, setBikes, locations, setLocations, offers, setOffers, enquiries, setEnquiries, transactions, setTransactions, employees, setEmployees, siteContent, setSiteContent, adminUsers, setAdminUsers, applications, setApplications } = props;
+    const { user, onLogout, reviews, setReviews, bikes, setBikes, locations, setLocations, offers, setOffers, enquiries, setEnquiries, transactions, setTransactions, employees, setEmployees, siteContent, setSiteContent, adminUsers, setAdminUsers, applications, setApplications, bikeUnits, setBikeUnits } = props;
 
     // Restore active panel from localStorage or default to 'applications'
     const [activePanel, setActivePanel] = useState<AdminPanel>(() => {
@@ -56,14 +58,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
         setIsRefreshing(true);
         try {
             // Fetch latest data based on current panel
-            const [bikesData, offersData, enquiriesData, reviewsData, employeesData, applicationsData, transactionsData] = await Promise.all([
+            const [bikesData, offersData, enquiriesData, reviewsData, employeesData, applicationsData, transactionsData, unitsData] = await Promise.all([
                 api.admin.getBikes(),
                 api.admin.getOffers(),
                 api.admin.getEnquiries(),
                 api.admin.getReviews(),
                 api.admin.getEmployees(),
                 api.admin.getApplications(),
-                api.admin.getTransactions()
+                api.admin.getTransactions(),
+                api.admin.getBikeUnits()
             ]);
 
             setBikes(bikesData);
@@ -73,6 +76,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
             setEmployees(employeesData);
             setApplications(applicationsData);
             setTransactions(transactionsData);
+            setBikeUnits(unitsData);
         } catch (error) {
             console.error('Error refreshing data:', error);
         } finally {
@@ -94,7 +98,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     const navItems = [
         { id: 'dashboard', label: 'Dashboard', icon: <ViewGridIcon className="w-5 h-5" /> },
         { id: 'bookings', label: 'Bookings', icon: <ClipboardListIcon className="w-5 h-5" /> },
-        { id: 'fleet', label: 'Bike Fleet', icon: <ClipboardListIcon className="w-5 h-5" /> },
+        { id: 'fleet', label: 'Model Catalog', icon: <ClipboardListIcon className="w-5 h-5" /> },
         { id: 'locations', label: 'Pickup Locations', icon: <LocationMarkerIcon className="w-5 h-5" /> },
         { id: 'offers', label: 'Offers', icon: <TagIcon className="w-5 h-5" /> },
         { id: 'enquiries', label: 'Enquiries', icon: <MailIcon className="w-5 h-5" /> },
@@ -116,7 +120,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     const renderPanel = () => {
         switch (activePanel) {
             case 'bookings': return <BookingManagementPanel />;
-            case 'fleet': return <BikeManagementPanel fleet={bikes} setFleet={setBikes} />;
+            case 'fleet': return <BikeManagementPanel fleet={bikes} setFleet={setBikes} bikeUnits={bikeUnits} />;
             case 'locations': return <LocationManagementPanel locations={locations} setLocations={setLocations} />;
             case 'offers': return <OfferManagementPanel offers={offers} setOffers={setOffers} />;
             case 'enquiries': return <EnquiryManagementPanel enquiries={enquiries} setEnquiries={setEnquiries} />;
@@ -159,8 +163,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                         {user.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1">
-                        <p className="text-sm font-semibold text-white">{user.name}</p>
-                        <p className="text-xs text-green-200/70">{user.role.name}</p>
+                        <p className="text-sm font-semibold text-white leading-tight">{user.name}</p>
+                        <p className="text-xs text-green-200/70 font-medium uppercase tracking-wider">Administrator</p>
                     </div>
                 </div>
                 <button onClick={onLogout} className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold py-2.5 rounded-lg text-sm transition-all duration-200 hover:shadow-lg">
@@ -178,42 +182,32 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
             </aside>
 
             {/* Mobile Sidebar */}
-            <div className={`fixed inset-0 z-40 lg:hidden ${isSidebarOpen ? 'block' : 'hidden'}`}>
-                <div className="fixed inset-0 bg-black/60" onClick={() => setIsSidebarOpen(false)}></div>
-                <aside className={`fixed top-0 left-0 h-full w-64 bg-primary text-white flex flex-col transition-transform duration-300 ease-in-out shadow-xl ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                    <SidebarContent />
-                </aside>
-            </div>
+            <div className={`
+                fixed inset-0 bg-black/50 z-40 transition-opacity lg:hidden
+                ${isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
+            `} onClick={() => setIsSidebarOpen(false)}></div>
 
-            {/* Main Content */}
-            <main className="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col">
-                <div className="lg:hidden flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                        <button onClick={() => setIsSidebarOpen(true)} className="p-2 rounded-md text-gray-600 hover:bg-gray-200">
-                            <MenuAlt2Icon className="w-6 h-6" />
-                        </button>
-                        <h2 className="text-lg font-bold ml-4">Admin Panel</h2>
-                    </div>
-                    {isRefreshing && (
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                            <span>Refreshing...</span>
-                        </div>
-                    )}
-                </div>
-                {/* Desktop refresh indicator */}
-                <div className="hidden lg:flex justify-end mb-4">
-                    {isRefreshing && (
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                            <span>Refreshing data...</span>
-                        </div>
-                    )}
-                </div>
-                <div className="flex-grow">
+            <aside className={`
+                fixed inset-y-0 left-0 w-64 bg-primary text-white flex flex-col z-50 transform transition-transform lg:hidden
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+            `}>
+                <SidebarContent />
+            </aside>
+
+            <div className="flex-1 flex flex-col min-w-0">
+                {/* Topbar (Mobile) */}
+                <header className="lg:hidden flex items-center justify-between p-4 bg-primary text-white sticky top-0 z-30 shadow-md">
+                    <button onClick={() => setIsSidebarOpen(true)}>
+                        <MenuAlt2Icon className="w-6 h-6" />
+                    </button>
+                    <h1 className="text-xl font-bold italic">RoAd RoBo's</h1>
+                    <div className="w-6"></div>
+                </header>
+
+                <main className="p-4 md:p-8 flex-grow">
                     {renderPanel()}
-                </div>
-            </main>
+                </main>
+            </div>
         </div>
     );
 };
@@ -376,7 +370,7 @@ const BikeFormModal: React.FC<{ bike: Bike | null; onSave: (bikeData: Bike) => v
             <Card className="w-full max-w-2xl flex flex-col">
                 <form onSubmit={handleSubmit}>
                     <div className="p-6 border-b flex justify-between items-center">
-                        <h2 className="text-xl font-bold">{bike ? 'Edit' : 'Add'} Bike</h2>
+                        <h2 className="text-xl font-bold">{bike ? 'Edit' : 'Create'} Model Variant</h2>
                         <button type="button" onClick={onClose}><XIcon className="w-6 h-6" /></button>
                     </div>
                     <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
@@ -396,7 +390,7 @@ const BikeFormModal: React.FC<{ bike: Bike | null; onSave: (bikeData: Bike) => v
                     </div>
                     <div className="p-4 bg-gray-50 flex justify-end gap-4">
                         <button type="button" onClick={onClose} className="border border-gray-300 font-semibold py-2 px-4 rounded-lg">Cancel</button>
-                        <button type="submit" className="bg-secondary text-white font-semibold py-2 px-4 rounded-lg">Save Bike</button>
+                        <button type="submit" className="bg-secondary text-white font-semibold py-2 px-4 rounded-lg">Save Model</button>
                     </div>
                 </form>
             </Card>
@@ -404,7 +398,7 @@ const BikeFormModal: React.FC<{ bike: Bike | null; onSave: (bikeData: Bike) => v
     );
 };
 
-const BikeManagementPanel: React.FC<{ fleet: Bike[]; setFleet: React.Dispatch<React.SetStateAction<Bike[]>> }> = ({ fleet, setFleet }) => {
+const BikeManagementPanel: React.FC<{ fleet: Bike[]; setFleet: React.Dispatch<React.SetStateAction<Bike[]>>; bikeUnits: BikeUnit[] }> = ({ fleet, setFleet, bikeUnits }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingBike, setEditingBike] = useState<Bike | null>(null);
 
@@ -412,6 +406,15 @@ const BikeManagementPanel: React.FC<{ fleet: Bike[]; setFleet: React.Dispatch<Re
     const handleEdit = (bike: Bike) => { setEditingBike(bike); setIsModalOpen(true); };
     const handleDelete = async (id: number) => {
         if (window.confirm('Are you sure you want to delete this bike?')) {
+            // Find and delete associated units to prevent orphans
+            const allUnits = await api.admin.getBikeUnits();
+            const associatedUnits = allUnits.filter((u: any) => Number(u.bike_id) === Number(id));
+
+            for (const unit of associatedUnits) {
+                await api.admin.deleteBikeUnit(unit.id);
+            }
+
+            // Delete the main bike record
             await api.admin.deleteBike(id);
             setFleet(currentFleet => currentFleet.filter(b => b.id !== id));
         }
@@ -431,11 +434,11 @@ const BikeManagementPanel: React.FC<{ fleet: Bike[]; setFleet: React.Dispatch<Re
         <div>
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold">Bike Fleet</h1>
-                    <p className="text-gray-600 mt-1">Manage all bikes available for rent.</p>
+                    <h1 className="text-3xl font-bold">Model Catalog</h1>
+                    <p className="text-gray-600 mt-1">Define bike variants and master data.</p>
                 </div>
                 <button onClick={handleAdd} className="bg-secondary text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2">
-                    <PlusIcon className="w-5 h-5" /> Add Bike
+                    <PlusIcon className="w-5 h-5" /> New Model
                 </button>
             </div>
 
@@ -479,6 +482,7 @@ const BikeManagementPanel: React.FC<{ fleet: Bike[]; setFleet: React.Dispatch<Re
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Type</th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Rates</th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Deposit</th>
+                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Fleet (T/B/A)</th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
                                     <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-text-muted uppercase tracking-wider">Actions</th>
                                 </tr>
@@ -504,6 +508,13 @@ const BikeManagementPanel: React.FC<{ fleet: Bike[]; setFleet: React.Dispatch<Re
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-text-muted">₹{bike.deposit}</td>
                                         <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-bold text-text-body">Live Stock: {bikeUnits.filter(u => Number(u.bike_id) === Number(bike.id)).length}</span>
+                                                <span className="text-[10px] text-error">On Field: {bikeUnits.filter(u => Number(u.bike_id) === Number(bike.id) && u.status === 'Rented').length}</span>
+                                                <span className="text-[10px] text-success">At Hub: {bikeUnits.filter(u => Number(u.bike_id) === Number(bike.id) && u.status === 'Ready').length}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${bike.availability === 'Available' ? 'bg-green-100 text-green-800' :
                                                 bike.availability === 'Limited' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'
                                                 }`}>{bike.availability}</span>
@@ -524,40 +535,62 @@ const BikeManagementPanel: React.FC<{ fleet: Bike[]; setFleet: React.Dispatch<Re
     );
 };
 
-const LocationFormModal: React.FC<{ locationName: string | null, onSave: (name: string, originalName?: string) => void, onClose: () => void }> = ({ locationName, onSave, onClose }) => {
-    const [name, setName] = useState(locationName || '');
+const LocationFormModal: React.FC<{ location: PickupLocation | null, onSave: (location: PickupLocation, originalName?: string) => void, onClose: () => void }> = ({ location, onSave, onClose }) => {
+    const [name, setName] = useState(location?.name || '');
+    const [status, setStatus] = useState<LocationStatus>(location?.status || 'active');
+
     return (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
-                <form onSubmit={(e) => { e.preventDefault(); onSave(name, locationName || undefined); }}>
-                    <div className="p-6 border-b flex justify-between items-center"><h2 className="text-xl font-bold">{locationName ? 'Edit' : 'Add'} Location</h2><button type="button" onClick={onClose}><XIcon className="w-6 h-6" /></button></div>
-                    <div className="p-6"><label>Location Name</label><input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full p-2 bg-white border border-input rounded-lg mt-1 focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-input-focus" /></div>
-                    <div className="p-4 bg-gray-50 flex justify-end gap-4"><button type="button" onClick={onClose} className="border border-gray-300 font-semibold py-2 px-4 rounded-lg">Cancel</button><button type="submit" className="bg-secondary text-white font-semibold py-2 px-4 rounded-lg">Save</button></div>
+                <form onSubmit={(e) => { e.preventDefault(); onSave({ name, status }, location?.name || undefined); }}>
+                    <div className="p-6 border-b flex justify-between items-center">
+                        <h2 className="text-xl font-bold">{location ? 'Edit' : 'Add'} Location</h2>
+                        <button type="button" onClick={onClose}><XIcon className="w-6 h-6" /></button>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Location Name</label>
+                            <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full p-2 bg-white border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary/50" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-1">Status</label>
+                            <select value={status} onChange={e => setStatus(e.target.value as LocationStatus)} className="w-full p-2 bg-white border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary/50">
+                                <option value="active">Active (Green)</option>
+                                <option value="busy">Busy (Orange)</option>
+                                <option value="unavailable">Unavailable (Gray)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="p-4 bg-gray-50 flex justify-end gap-4">
+                        <button type="button" onClick={onClose} className="border border-gray-300 font-semibold py-2 px-4 rounded-lg">Cancel</button>
+                        <button type="submit" className="bg-secondary text-white font-semibold py-2 px-4 rounded-lg">Save</button>
+                    </div>
                 </form>
             </Card>
         </div>
     )
 }
 
-const LocationManagementPanel: React.FC<{ locations: string[]; setLocations: React.Dispatch<React.SetStateAction<string[]>> }> = ({ locations, setLocations }) => {
+const LocationManagementPanel: React.FC<{ locations: PickupLocation[]; setLocations: React.Dispatch<React.SetStateAction<PickupLocation[]>> }> = ({ locations, setLocations }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingLocation, setEditingLocation] = useState<string | null>(null);
+    const [editingLocation, setEditingLocation] = useState<PickupLocation | null>(null);
 
     const handleAdd = () => { setEditingLocation(null); setIsModalOpen(true); };
-    const handleEdit = (loc: string) => { setEditingLocation(loc); setIsModalOpen(true); };
-    const handleDelete = async (loc: string) => {
+    const handleEdit = (loc: PickupLocation) => { setEditingLocation(loc); setIsModalOpen(true); };
+    const handleDelete = async (locName: string) => {
         if (window.confirm('Are you sure you want to delete this location?')) {
-            await api.admin.deleteLocation(loc);
-            setLocations(currentLocations => currentLocations.filter(l => l !== loc));
+            await api.admin.deleteLocation(locName);
+            setLocations(currentLocations => currentLocations.filter(l => l.name !== locName));
         }
     };
-    const handleSave = async (newName: string, originalName?: string) => {
+    const handleSave = async (location: PickupLocation, originalName?: string) => {
         if (originalName) {
-            await api.admin.updateLocation(originalName, newName);
-            setLocations(prev => prev.map(l => l === originalName ? newName : l));
+            await api.admin.updateLocation(originalName, location.name);
+            // Note: Since API might not support updating status yet, we just update local state
+            setLocations(prev => prev.map(l => l.name === originalName ? location : l));
         } else {
-            await api.admin.createLocation(newName);
-            setLocations(prev => [...prev, newName]);
+            await api.admin.createLocation(location.name);
+            setLocations(prev => [...prev, location]);
         }
         setIsModalOpen(false);
     };
@@ -574,17 +607,25 @@ const LocationManagementPanel: React.FC<{ locations: string[]; setLocations: Rea
             <Card className="p-6">
                 <ul className="space-y-3">
                     {locations.map(location => (
-                        <li key={location} className="flex justify-between items-center p-3 bg-accent rounded-lg">
-                            <span className="font-medium">{location}</span>
+                        <li key={location.name} className="flex justify-between items-center p-3 bg-accent rounded-lg">
+                            <div className="flex items-center gap-3">
+                                <span className="font-medium">{location.name}</span>
+                                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${location.status === 'active' ? 'bg-green-100 text-green-700' :
+                                    location.status === 'busy' ? 'bg-orange-100 text-orange-700' :
+                                        'bg-gray-100 text-gray-700'
+                                    }`}>
+                                    {location.status}
+                                </span>
+                            </div>
                             <div className="space-x-4">
                                 <button onClick={() => handleEdit(location)} className="text-primary hover:underline text-sm font-medium">Edit</button>
-                                <button onClick={() => handleDelete(location)} className="text-error hover:underline text-sm font-medium">Delete</button>
+                                <button onClick={() => handleDelete(location.name)} className="text-error hover:underline text-sm font-medium">Delete</button>
                             </div>
                         </li>
                     ))}
                 </ul>
             </Card>
-            {isModalOpen && <LocationFormModal locationName={editingLocation} onSave={handleSave} onClose={() => setIsModalOpen(false)} />}
+            {isModalOpen && <LocationFormModal location={editingLocation} onSave={handleSave} onClose={() => setIsModalOpen(false)} />}
         </div>
     );
 };

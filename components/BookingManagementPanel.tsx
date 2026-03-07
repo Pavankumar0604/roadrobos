@@ -22,11 +22,16 @@ interface Booking {
     status?: string;
 }
 
-const BookingManagementPanel: React.FC = () => {
+interface BookingManagementPanelProps {
+    initialFilter?: 'all' | 'active' | 'completed' | 'cancelled';
+    initialPaymentFilter?: 'all' | 'paid' | 'pending';
+}
+
+const BookingManagementPanel: React.FC<BookingManagementPanelProps> = ({ initialFilter = 'all', initialPaymentFilter = 'all' }) => {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'cancelled'>('all');
-    const [paymentFilter, setPaymentFilter] = useState<'all' | 'paid' | 'pending'>('all');
+    const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'cancelled'>(initialFilter);
+    const [paymentFilter, setPaymentFilter] = useState<'all' | 'paid' | 'pending'>(initialPaymentFilter);
 
     useEffect(() => {
         fetchBookings();
@@ -37,24 +42,19 @@ const BookingManagementPanel: React.FC = () => {
             setLoading(true);
             const { data, error } = await supabase
                 .from('bookings')
-                .select(`
-                    *,
-                    users ( name, email, phone ),
-                    bikes ( name ),
-                    rider_information ( user_name, contact_number, email_id )
-                `)
+                .select('*')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
 
-            // Map the joined data to our Booking interface
+            // Map flat bookings row to our Booking interface
             const formattedData = (data || []).map((b: any) => ({
                 ...b,
-                user_name: b.rider_information?.user_name || b.user_name || b.users?.name || 'Guest User',
-                user_email: b.rider_information?.email_id || b.user_email || b.users?.email || 'N/A',
-                user_phone: b.rider_information?.contact_number || b.user_phone || b.users?.phone || 'N/A',
-                bike_name: b.vehicle_name || b.bikes?.name || 'Unknown Bike',
-                total_fare: Number(b.total_payable || b.total_fare || 0)
+                user_name: b.user_name || b.rider_name || 'Guest User',
+                user_email: b.user_email || b.email_id || 'N/A',
+                user_phone: b.user_phone || b.contact_number || 'N/A',
+                bike_name: b.vehicle_name || b.bike_name || 'Unknown Bike',
+                total_fare: Number(b.total_payable || b.total_fare || 0),
             }));
 
             setBookings(formattedData);

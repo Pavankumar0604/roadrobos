@@ -31,12 +31,12 @@ const ValueProps: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {valueProps.map((prop, index) => (
-            <Card key={index} className="text-center transform transition-transform hover:-translate-y-2">
+            <Card key={index} className="text-center transform transition-all hover:shadow-md hover:-translate-y-1 group">
               <div className="p-6">
-                <div className="flex justify-center items-center h-16 w-16 mx-auto bg-primary/10 rounded-full">
+                <div className="flex justify-center items-center h-16 w-16 mx-auto bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
                   {prop.icon}
                 </div>
-                <h3 className="text-lg font-heading font-extrabold uppercase tracking-widest mt-4">{prop.title}</h3>
+                <h3 className="text-lg font-heading font-extrabold uppercase tracking-widest mt-4 group-hover:text-secondary transition-colors italic">{prop.title}</h3>
                 <p className="text-gray-600 mt-1">{prop.description}</p>
               </div>
             </Card>

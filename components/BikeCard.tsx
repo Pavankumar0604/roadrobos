@@ -47,24 +47,38 @@ const BikeCard: React.FC<BikeCardProps> = ({ bike, onSelectBike }) => {
             <div className="p-5">
                 <div className="flex justify-between items-start">
                     <h3 className="text-lg font-bold text-primary">{bike.name}</h3>
-                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${bike.availability === 'Available' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                        {bike.availability}
-                    </span>
+                    <div className="flex flex-col items-center">
+                        <span className={`px-3 py-1 text-xs font-semibold rounded-full ${bike.availability === 'Available' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                            {bike.availability}
+                        </span>
+                        {bike.availableCount !== undefined && bike.availability === 'Available' && (
+                            <span className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">
+                                Units : {bike.availableCount.toString().padStart(2, '0')}
+                            </span>
+                        )}
+                    </div>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">{bike.specs.cc} | {bike.specs.transmission}</p>
-                <div className="mt-4 flex justify-between items-center">
-                    <div>
-                        <p className="text-primary font-bold text-lg">₹{bike.price.hour}<span className="text-sm font-normal text-gray-500">/hr</span></p>
-                        <p className="text-gray-500 text-sm">₹{bike.price.day}/day</p>
+                {bike.type !== 'Electric' ? (
+                    <div className="mt-4 flex justify-center items-center h-[52px]">
+                        <p className="text-primary font-bold text-lg">Coming Soon</p>
                     </div>
-                    <p className="text-sm text-gray-500">Deposit: ₹{bike.deposit}</p>
-                </div>
+                ) : (
+                    <div className="mt-4 flex justify-between items-center h-[52px]">
+                        <div>
+                            <p className="text-primary font-bold text-lg">₹{bike.price.hour}<span className="text-sm font-normal text-gray-500">/hr</span></p>
+                            <p className="text-gray-500 text-sm">₹{bike.price.day}/day</p>
+                        </div>
+                        <p className="text-sm text-gray-500">Deposit: ₹{bike.deposit}</p>
+                    </div>
+                )}
                 <button
-                    onClick={() => onSelectBike(bike)}
+                    onClick={() => { if (bike.type === 'Electric') onSelectBike(bike); }}
+                    disabled={bike.type !== 'Electric'}
                     aria-label={`View details for ${bike.name}`}
-                    className="w-full mt-5 bg-primary text-white font-semibold py-2.5 rounded-lg hover:bg-opacity-90 transition-all"
+                    className={`w-full mt-5 text-white font-semibold py-2.5 rounded-lg transition-all ${bike.type === 'Electric' ? 'bg-primary hover:bg-opacity-90' : 'bg-gray-400 cursor-not-allowed'}`}
                 >
-                    View Details
+                    {bike.type === 'Electric' ? 'View Details' : 'Coming Soon'}
                 </button>
             </div>
         </Card>

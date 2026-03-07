@@ -2,8 +2,6 @@ import React from 'react';
 import { DocumentDownloadIcon, MailIcon, PhoneIcon } from './icons/Icons';
 import { type PressRelease, type Bike } from '../types';
 import { bikes, pressReleases } from '../constants';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 interface PressPageProps {
     contactEmail: string;
@@ -11,10 +9,13 @@ interface PressPageProps {
 }
 
 const PressPage: React.FC<PressPageProps> = ({ contactEmail, contactPhone }) => {
-    
-    const handleDownloadKit = (e: React.MouseEvent<HTMLButtonElement>) => {
+
+    const handleDownloadKit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        
+
+        const { jsPDF } = await import('jspdf');
+        const { default: autoTable } = await import('jspdf-autotable');
+
         const doc = new jsPDF();
         const pageHeight = doc.internal.pageSize.height;
         let y = 20;
@@ -45,13 +46,13 @@ const PressPage: React.FC<PressPageProps> = ({ contactEmail, contactPhone }) => 
             doc.setFontSize(11);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(71, 85, 105); // text-muted-color
-            
+
             const textToRender = Array.isArray(body) ? body.join('\n') : body;
             const splitBody = doc.splitTextToSize(textToRender, 180);
             doc.text(splitBody, 14, y);
             y += splitBody.length * 5 + 5;
         }
-        
+
         // --- About Us ---
         addSection("About RoAd RoBo's", "RoAd RoBo’s, operated by SebChris Mobility Pvt Ltd, is revolutionizing urban mobility in India. Our clean-energy electric scooter rental platform is designed for the last-mile logistics sector, empowering the delivery ecosystem with sustainable and reliable solutions. We are committed to driving a greener future by making electric mobility accessible, efficient, and affordable.");
 
@@ -86,7 +87,7 @@ const PressPage: React.FC<PressPageProps> = ({ contactEmail, contactPhone }) => 
             "Mr. Santhosh Kumar (John Sam), Director: With extensive experience in logistics and technology, Mr. Kumar provides the strategic vision for RoAd RoBo’s, focusing on sustainable growth and technological innovation.",
             "Mrs. Theresa, Director: Mrs. Theresa oversees operations and partner relations, ensuring a seamless experience for our clients and driving the company's commitment to social responsibility."
         ]);
-        
+
         // --- Recent News ---
         if (y > pageHeight - 70) {
             doc.addPage();
@@ -111,7 +112,7 @@ const PressPage: React.FC<PressPageProps> = ({ contactEmail, contactPhone }) => 
 
         // --- Media Contact ---
         addSection("Media Contact", "For all media inquiries, interviews, or other press-related matters, please contact our communications team.");
-        
+
         doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(71, 85, 105);
@@ -155,7 +156,7 @@ const PressPage: React.FC<PressPageProps> = ({ contactEmail, contactPhone }) => 
                             </button>
                         </div>
                     </section>
-                    
+
                     {/* Recent Releases */}
                     <section className="mt-20">
                         <h2 className="text-2xl md:text-3xl font-heading font-extrabold uppercase tracking-widest text-primary text-center mb-12">Recent Press Releases</h2>
@@ -170,23 +171,23 @@ const PressPage: React.FC<PressPageProps> = ({ contactEmail, contactPhone }) => 
                             ))}
                         </div>
                     </section>
-                    
-                     {/* Image Gallery */}
+
+                    {/* Image Gallery */}
                     <section className="mt-20">
-                         <h2 className="text-2xl md:text-3xl font-heading font-extrabold uppercase tracking-widest text-primary text-center mb-12">Image Gallery</h2>
-                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <h2 className="text-2xl md:text-3xl font-heading font-extrabold uppercase tracking-widest text-primary text-center mb-12">Image Gallery</h2>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {bikes.slice(0, 6).map(bike => (
                                 <div key={bike.id} className="group relative rounded-lg overflow-hidden">
-                                    <img src={bike.images[0]} alt={bike.name} className="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-300"/>
+                                    <img src={bike.images[0]} alt={bike.name} className="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-300" />
                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
                                         <p className="text-white font-semibold">{bike.name}</p>
                                     </div>
                                 </div>
                             ))}
-                         </div>
-                         <div className="text-center mt-8">
-                             <button className="border border-primary text-primary font-semibold py-2 px-6 rounded-lg hover:bg-primary/5 transition">View More Images</button>
-                         </div>
+                        </div>
+                        <div className="text-center mt-8">
+                            <button className="border border-primary text-primary font-semibold py-2 px-6 rounded-lg hover:bg-primary/5 transition">View More Images</button>
+                        </div>
                     </section>
 
                     {/* Media Contact */}
@@ -196,10 +197,10 @@ const PressPage: React.FC<PressPageProps> = ({ contactEmail, contactPhone }) => 
                             <p className="mt-3 text-gray-200">For all media inquiries, interviews, or other press-related matters, please contact our communications team.</p>
                             <div className="mt-6 flex flex-col sm:flex-row justify-center items-center gap-6">
                                 <a href={`mailto:${contactEmail}`} className="inline-flex items-center gap-2 hover:text-secondary transition-colors">
-                                    <MailIcon className="w-5 h-5"/> {contactEmail}
+                                    <MailIcon className="w-5 h-5" /> {contactEmail}
                                 </a>
-                                 <a href={`tel:${contactPhone}`} className="inline-flex items-center gap-2 hover:text-secondary transition-colors">
-                                    <PhoneIcon className="w-5 h-5"/> {contactPhone}
+                                <a href={`tel:${contactPhone}`} className="inline-flex items-center gap-2 hover:text-secondary transition-colors">
+                                    <PhoneIcon className="w-5 h-5" /> {contactPhone}
                                 </a>
                             </div>
                         </div>

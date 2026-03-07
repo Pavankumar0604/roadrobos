@@ -1,6 +1,7 @@
 import React from 'react';
 import { type Bike } from '../types';
 import BikeCard from './BikeCard';
+import { groupBikesByName } from '../src/utils/bikeUtils';
 
 interface FeaturedFleetProps {
     bikes: Bike[];
@@ -9,8 +10,11 @@ interface FeaturedFleetProps {
 }
 
 const FeaturedFleet: React.FC<FeaturedFleetProps> = ({ bikes, onSelectBike, city }) => {
-    // Show available or limited bikes first, then coming soon
-    const sortedBikes = [...bikes].sort((a, b) => {
+    // 1. Group bikes by name/color to prevent duplicates and aggregate counts
+    const groupedBikes = groupBikesByName(bikes);
+
+    // 2. Show available or limited bikes first, then coming soon
+    const sortedBikes = [...groupedBikes].sort((a, b) => {
         if (a.availability === 'Coming Soon' && b.availability !== 'Coming Soon') return 1;
         if (a.availability !== 'Coming Soon' && b.availability === 'Coming Soon') return -1;
         return 0;
@@ -33,4 +37,4 @@ const FeaturedFleet: React.FC<FeaturedFleetProps> = ({ bikes, onSelectBike, city
     );
 };
 
-export default FeaturedFleet;
+export default React.memo(FeaturedFleet);

@@ -3,6 +3,7 @@ import { type Bike, type SearchParams } from '../types';
 import BikeCard from './BikeCard';
 import Filters from './Filters';
 import { FilterIcon, XIcon } from './icons/Icons';
+import { groupBikesByName } from '../src/utils/bikeUtils';
 
 interface SearchResultsPageProps {
     searchParams: SearchParams;
@@ -18,7 +19,8 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchParams, bik
     const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
     const filteredBikes = useMemo(() => {
-        return bikes.filter(bike => {
+        const groupedBikes = groupBikesByName(bikes);
+        return groupedBikes.filter(bike => {
             if (!filters.bikeTypes.includes('All') && !filters.bikeTypes.includes(bike.type)) {
                 return false;
             }
@@ -40,7 +42,7 @@ const SearchResultsPage: React.FC<SearchResultsPageProps> = ({ searchParams, bik
             <div className="bg-accent border-b">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <h1 className="text-lg md:text-xl font-heading font-extrabold uppercase tracking-widest text-primary">Bikes available in {searchParams.city}</h1>
-                     <div className="text-gray-600 text-sm mt-2 flex flex-col sm:flex-row sm:items-center sm:gap-4">
+                    <div className="text-gray-600 text-sm mt-2 flex flex-col sm:flex-row sm:items-center sm:gap-4">
                         <p>
                             <span className="font-medium">Pickup:</span> {new Date(searchParams.pickupDate).toDateString()} at {searchParams.pickupTime}
                         </p>

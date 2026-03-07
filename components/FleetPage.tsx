@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { type Bike } from '../types';
 import BikeCard from './BikeCard';
+import { groupBikesByName } from '../src/utils/bikeUtils';
 
 interface FleetPageProps {
     bikes: Bike[];
@@ -8,12 +9,13 @@ interface FleetPageProps {
 }
 
 const FleetPage: React.FC<FleetPageProps> = ({ bikes, onSelectBike }) => {
-    
+
     const bikesByCategory = useMemo(() => {
-        const categories: (Bike['type'])[] = ['Electric', 'Scooter', 'Geared', 'Superbike'];
+        const groupedBikes = groupBikesByName(bikes);
+        const categories: (Bike['type'])[] = ['Electric', 'Scooter', 'Gear', 'Superbike'];
         const grouped: { [key in Bike['type']]?: Bike[] } = {};
 
-        for (const bike of bikes) {
+        for (const bike of groupedBikes) {
             if (!grouped[bike.type]) {
                 grouped[bike.type] = [];
             }
@@ -41,14 +43,14 @@ const FleetPage: React.FC<FleetPageProps> = ({ bikes, onSelectBike }) => {
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
                     {bikesByCategory.map(category => (
                         <section key={category.name} id={category.name.toLowerCase()}>
-                             <div className="text-left mb-8">
+                            <div className="text-left mb-8">
                                 <h2 className="text-2xl md:text-3xl font-heading font-extrabold uppercase tracking-widest text-primary">{category.name} Bikes</h2>
                                 <p className="mt-2 text-gray-600">
                                     {
                                         category.name === 'Electric' ? 'Eco-friendly and efficient rides for the modern city.' :
-                                        category.name === 'Scooter' ? 'Easy-to-handle scooters perfect for daily commutes.' :
-                                        category.name === 'Geared' ? 'Versatile and powerful bikes for city and highway riding.' :
-                                        'High-performance machines for the ultimate thrill.'
+                                            category.name === 'Scooter' ? 'Easy-to-handle scooters perfect for daily commutes.' :
+                                                category.name === 'Geared' ? 'Versatile and powerful bikes for city and highway riding.' :
+                                                    'High-performance machines for the ultimate thrill.'
                                     }
                                 </p>
                             </div>

@@ -11,10 +11,9 @@ import Footer from './components/Footer';
 import LoadingSpinner from './components/LoadingSpinner';
 import WelcomeModal from './components/WelcomeModal';
 
-
-import { type Bike, type SearchParams, type BookingDetails, type AdminUser, type Offer, type Review, type Enquiry, type Transaction, type Employee, type SiteContent, type Application } from './types';
-import { initialSiteContent, jobOpenings, initialAdminUsers, offersData } from './constants'; // Only keep essential constants
-import api from './src/api';
+import { type Bike, type BikeUnit, type SearchParams, type BookingDetails, type AdminUser, type Offer, type Review, type Enquiry, type Transaction, type Employee, type SiteContent, type Application, type PickupLocation } from './types';
+import { initialSiteContent, jobOpenings, initialAdminUsers, offersData, bikes as constantsBikes, pickupLocations as constantsLocations } from './constants'; // Only keep essential constants
+import api from '@/src/api';
 
 // --- Lazy-loaded Page Components ---
 const SearchResultsPage = lazy(() => import('./components/SearchResultsPage'));
@@ -34,11 +33,14 @@ const PrivacyPolicyPage = lazy(() => import('./components/PrivacyPolicyPage'));
 const CancellationPolicyPage = lazy(() => import('./components/CancellationPolicyPage'));
 const PressPage = lazy(() => import('./components/PressPage'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const ManagerLoginPage = lazy(() => import('./components/ManagerLoginPage'));
+const ManagerDashboard = lazy(() => import('./components/ManagerDashboard'));
+const ServiceManagerDashboard = lazy(() => import('./components/ServiceManagerDashboard'));
 const CareersPage = lazy(() => import('./components/CareersPage'));
 const FleetPage = lazy(() => import('./components/FleetPage'));
+const PortalAccessPage = lazy(() => import('./components/PortalAccessPage'));
 
-
-type View = 'home' | 'searchResults' | 'bikeDetail' | 'booking' | 'confirmation' | 'about' | 'tariff' | 'faq' | 'terms' | 'contact' | 'offers' | 'partner' | 'howItWorks' | 'login' | 'adminDashboard' | 'privacyPolicy' | 'cancellationPolicy' | 'press' | 'careers' | 'fleet';
+type View = 'home' | 'searchResults' | 'bikeDetail' | 'booking' | 'confirmation' | 'about' | 'tariff' | 'faq' | 'terms' | 'contact' | 'offers' | 'partner' | 'howItWorks' | 'login' | 'managerLogin' | 'portalAccess' | 'adminDashboard' | 'managerDashboard' | 'serviceManagerDashboard' | 'privacyPolicy' | 'cancellationPolicy' | 'press' | 'careers' | 'fleet';
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('home');
@@ -50,9 +52,10 @@ const App: React.FC = () => {
   const [isSearchFormVisible, setIsSearchFormVisible] = useState(false);
   const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
 
-  // --- Centralized App State (empty by default - loaded from DB) ---
-  const [bikes, setBikes] = useState<Bike[]>([]);
-  const [pickupLocations, setPickupLocations] = useState<string[]>([]);
+  // --- Centralized App State (loads constants.ts defaults to show UI immediately, then overridden by DB) ---
+  const [bikes, setBikes] = useState<Bike[]>(constantsBikes);
+  const [bikeUnits, setBikeUnits] = useState<BikeUnit[]>([]);
+  const [pickupLocations, setPickupLocations] = useState<PickupLocation[]>(constantsLocations);
   const [offers, setOffers] = useState<Offer[]>(offersData); // Initialize with constants as fallback
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -63,8 +66,10 @@ const App: React.FC = () => {
   const [applications, setApplications] = useState<Application[]>([]);
 
 
-  // Admin State
+  // Admin/Manager/Service State
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [isManagerLoggedIn, setIsManagerLoggedIn] = useState(false);
+  const [isServiceManagerLoggedIn, setIsServiceManagerLoggedIn] = useState(false);
   const [loggedInUser, setLoggedInUser] = useState<AdminUser | null>(null);
 
   // Coupon State (simulates per-session user usage)
@@ -78,6 +83,7 @@ const App: React.FC = () => {
       try {
         const [
           fetchedBikes,
+          fetchedUnits,
           fetchedLocations,
           fetchedOffers,
           fetchedReviews,
@@ -85,6 +91,7 @@ const App: React.FC = () => {
           fetchedSiteContent
         ] = await Promise.all([
           api.bike.getAll(),
+          api.admin.getBikeUnits(),
           api.admin.getLocations(), // Publicly accessible now
           api.admin.getOffers(),    // Publicly accessible now
           api.admin.getReviews(),   // Publicly accessible now
@@ -92,8 +99,15 @@ const App: React.FC = () => {
           api.admin.getSiteContent() // Publicly accessible now
         ]);
 
-        if (fetchedBikes) setBikes(fetchedBikes);
-        if (fetchedLocations) setPickupLocations(fetchedLocations);
+        if (fetchedBikes && fetchedBikes.length > 0) {
+          setBikes(fetchedBikes);
+        }
+        if (fetchedUnits) {
+          setBikeUnits(fetchedUnits);
+        }
+        if (fetchedLocations && fetchedLocations.length >= 6) {
+          setPickupLocations(fetchedLocations);
+        }
         // Merge API offers with local constants (prefer API if same ID, or just append)
         // Here we just set fetched offers, BUT if fetched is empty or fails, we kept the initial state.
         // If we want BOTH, we should merge.
@@ -122,32 +136,37 @@ const App: React.FC = () => {
 
   // Fetch Admin Data on Login
   useEffect(() => {
-    if (isAdminLoggedIn) {
+    if (isAdminLoggedIn || isManagerLoggedIn || isServiceManagerLoggedIn) {
       const fetchAdminData = async () => {
         try {
           const [
             fetchedEnquiries,
             fetchedAdminUsers,
             fetchedApplications,
-            fetchedTransactions
+            fetchedTransactions,
+            fetchedParts
           ] = await Promise.all([
             api.admin.getEnquiries(),
             api.admin.getAdminUsers(),
             api.admin.getApplications(),
-            api.admin.getTransactions()
+            api.admin.getTransactions(),
+            api.admin.getPartsInventory()
           ]);
 
           setEnquiries(fetchedEnquiries);
           setAdminUsers(fetchedAdminUsers);
           setApplications(fetchedApplications);
           setTransactions(fetchedTransactions);
+          // If we had a state for parts in App.tsx we would set it here, 
+          // but ServiceManagerDashboard handles its own if passed bikes/units.
+          // Actually, let's keep it simple. ServiceManagerDashboard can fetch its own parts if needed.
         } catch (error) {
           console.error("Failed to fetch admin data", error);
         }
       };
       fetchAdminData();
     }
-  }, [isAdminLoggedIn]);
+  }, [isAdminLoggedIn, isManagerLoggedIn, isServiceManagerLoggedIn]);
 
   const handleSearch = (params: Omit<SearchParams, 'city'>) => {
     setSearchParams({ ...params, city: selectedCity });
@@ -157,7 +176,7 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   };
 
-  const resetToHome = (options: { scrollToTop?: boolean } = {}) => {
+  const resetToHome = useCallback((options: { scrollToTop?: boolean } = {}) => {
     const { scrollToTop = true } = options;
     setSearchParams(null);
     setSelectedBike(null);
@@ -166,37 +185,39 @@ const App: React.FC = () => {
     if (scrollToTop) {
       window.scrollTo(0, 0);
     }
-  };
+  }, []);
 
-  const navigateTo = (targetView: View) => {
+  const navigateTo = useCallback((targetView: View) => {
     setView(targetView);
     window.scrollTo(0, 0);
-  };
+  }, []);
 
-  const handleGoHome = () => resetToHome();
-  const handleBookNowRedirect = () => {
+  const handleGoHome = useCallback(() => resetToHome(), [resetToHome]);
+  const handleBookNowRedirect = useCallback(() => {
     setView('home');
     setSearchParams(null);
     setSelectedBike(null);
     setIsSearchFormVisible(true);
     window.scrollTo(0, 0);
-  };
-  const handleGoToAbout = () => navigateTo('about');
-  const handleGoToTariff = () => navigateTo('tariff');
-  const handleGoToOffers = () => navigateTo('offers');
-  const handleGoToPartner = () => navigateTo('partner');
-  const handleGoToHowItWorks = () => navigateTo('howItWorks');
-  const handleGoToFAQ = () => navigateTo('faq');
-  const handleGoToTerms = () => navigateTo('terms');
-  const handleGoToContact = () => navigateTo('contact');
-  const handleGoToLogin = () => navigateTo('login');
-  const handleGoToPrivacyPolicy = () => navigateTo('privacyPolicy');
-  const handleGoToCancellationPolicy = () => navigateTo('cancellationPolicy');
-  const handleGoToPress = () => navigateTo('press');
-  const handleGoToCareers = () => navigateTo('careers');
-  const handleGoToFleet = () => navigateTo('fleet');
+  }, []);
+  const handleGoToAbout = useCallback(() => navigateTo('about'), [navigateTo]);
+  const handleGoToTariff = useCallback(() => navigateTo('tariff'), [navigateTo]);
+  const handleGoToOffers = useCallback(() => navigateTo('offers'), [navigateTo]);
+  const handleGoToPartner = useCallback(() => navigateTo('partner'), [navigateTo]);
+  const handleGoToHowItWorks = useCallback(() => navigateTo('howItWorks'), [navigateTo]);
+  const handleGoToFAQ = useCallback(() => navigateTo('faq'), [navigateTo]);
+  const handleGoToTerms = useCallback(() => navigateTo('terms'), [navigateTo]);
+  const handleGoToContact = useCallback(() => navigateTo('contact'), [navigateTo]);
+  const handleGoToLogin = useCallback(() => navigateTo('login'), [navigateTo]);
+  const handleGoToManagerLogin = useCallback(() => navigateTo('managerLogin'), [navigateTo]);
+  const handleGoToPrivacyPolicy = useCallback(() => navigateTo('privacyPolicy'), [navigateTo]);
+  const handleGoToCancellationPolicy = useCallback(() => navigateTo('cancellationPolicy'), [navigateTo]);
+  const handleGoToPress = useCallback(() => navigateTo('press'), [navigateTo]);
+  const handleGoToCareers = useCallback(() => navigateTo('careers'), [navigateTo]);
+  const handleGoToFleet = useCallback(() => navigateTo('fleet'), [navigateTo]);
+  const handleGoToPortalAccess = useCallback(() => navigateTo('portalAccess'), [navigateTo]);
 
-  const showAndScrollToSearchForm = () => {
+  const showAndScrollToSearchForm = useCallback(() => {
     setIsSearchFormVisible(true);
     // Use a timeout to ensure the element is rendered before scrolling/focusing
     setTimeout(() => {
@@ -209,7 +230,7 @@ const App: React.FC = () => {
         }
       }
     }, 100);
-  };
+  }, []);
 
   const handleSelectBike = useCallback((bike: Bike) => {
     setSelectedBike(bike);
@@ -295,6 +316,15 @@ const App: React.FC = () => {
     }
   };
 
+  const handleUpdateBike = async (id: number, updatedFields: Partial<Bike>) => {
+    try {
+      await api.admin.updateBike(id, updatedFields);
+      setBikes(prev => prev.map(b => b.id === id ? { ...b, ...updatedFields } : b));
+    } catch (error) {
+      console.error(`Failed to update bike ${id}:`, error);
+    }
+  };
+
   const handleApplicationSubmit = async (applicationData: Omit<Application, 'id' | 'submittedAt' | 'status'>) => {
     try {
       const newApplication: Application = {
@@ -313,13 +343,23 @@ const App: React.FC = () => {
 
   const handleLoginSuccess = (user: AdminUser) => {
     setLoggedInUser(user);
-    setIsAdminLoggedIn(true);
-    navigateTo('adminDashboard');
+    if (user.role.name === 'Manager') {
+      setIsManagerLoggedIn(true);
+      navigateTo('managerDashboard');
+    } else if (user.role.name === 'Service Manager') {
+      setIsServiceManagerLoggedIn(true);
+      navigateTo('serviceManagerDashboard');
+    } else {
+      setIsAdminLoggedIn(true);
+      navigateTo('adminDashboard');
+    }
   };
 
   const handleLogout = () => {
     setLoggedInUser(null);
     setIsAdminLoggedIn(false);
+    setIsManagerLoggedIn(false);
+    setIsServiceManagerLoggedIn(false);
     resetToHome();
   };
 
@@ -364,8 +404,8 @@ const App: React.FC = () => {
               heroTitleTemplate={siteContent.home.heroTitleTemplate}
               heroSubtitle={siteContent.home.heroSubtitle}
             />
-            <ValueProps />
             <FeaturedFleet bikes={bikes} onSelectBike={handleSelectBike} city={selectedCity} />
+            <ValueProps />
             <Locations pickupLocations={pickupLocations} />
             <Reviews reviews={reviews} />
             <AppPromo />
@@ -379,11 +419,25 @@ const App: React.FC = () => {
       return <LoginPage onLoginSuccess={handleLoginSuccess} onBackToHome={handleGoHome} adminUsers={adminUsers} />;
     }
 
+    if (view === 'managerLogin') {
+      return <ManagerLoginPage onLoginSuccess={handleLoginSuccess} onBackToHome={handleGoHome} />;
+    }
+
+
+    if (view === 'portalAccess') {
+      return <PortalAccessPage
+        onGoToAdminLogin={handleGoToLogin}
+        onGoToManagerLogin={handleGoToManagerLogin}
+        onBackToHome={handleGoHome}
+      />;
+    }
+
     if (view === 'adminDashboard' && isAdminLoggedIn && loggedInUser) {
       return <AdminDashboard
         user={loggedInUser}
         onLogout={handleLogout}
         bikes={bikes} setBikes={setBikes}
+        bikeUnits={bikeUnits} setBikeUnits={setBikeUnits}
         locations={pickupLocations} setLocations={setPickupLocations}
         offers={offers} setOffers={setOffers}
         enquiries={enquiries} setEnquiries={setEnquiries}
@@ -393,6 +447,49 @@ const App: React.FC = () => {
         siteContent={siteContent} setSiteContent={setSiteContent}
         adminUsers={adminUsers} setAdminUsers={setAdminUsers}
         applications={applications} setApplications={setApplications}
+      />;
+    }
+
+    if (view === 'managerDashboard' && isManagerLoggedIn && loggedInUser) {
+      return <ManagerDashboard
+        user={loggedInUser}
+        onLogout={handleLogout}
+        bikes={bikes} setBikes={setBikes}
+        bikeUnits={bikeUnits} setBikeUnits={setBikeUnits}
+        locations={pickupLocations} setLocations={setPickupLocations}
+        offers={offers} setOffers={setOffers}
+        enquiries={enquiries} setEnquiries={setEnquiries}
+        reviews={reviews} setReviews={setReviews}
+        transactions={transactions} setTransactions={setTransactions}
+        employees={employees} setEmployees={setEmployees}
+        siteContent={siteContent} setSiteContent={setSiteContent}
+        adminUsers={adminUsers} setAdminUsers={setAdminUsers}
+        applications={applications} setApplications={setApplications}
+      />;
+    }
+
+    if (view === 'serviceManagerDashboard' && isServiceManagerLoggedIn && loggedInUser) {
+      return <ServiceManagerDashboard
+        user={loggedInUser}
+        onLogout={handleGoHome}
+        bikes={bikes}
+        bikeUnits={bikeUnits}
+        onUpdateBike={async (id, data) => {
+          try {
+            const updated = await api.admin.updateBike(id, data);
+            setBikes(prev => prev.map(b => b.id === id ? { ...b, ...updated } : b));
+          } catch (error) {
+            console.error('Failed to update bike from service hub:', error);
+          }
+        }}
+        onUpdateUnit={async (id, data) => {
+          try {
+            const updated = await api.admin.updateBikeUnit(id, data);
+            setBikeUnits(prev => prev.map(u => u.id === id ? { ...u, ...updated } : u));
+          } catch (error) {
+            console.error('Failed to update unit from service hub:', error);
+          }
+        }}
       />;
     }
 
@@ -411,8 +508,10 @@ const App: React.FC = () => {
           onGoToHowItWorks={handleGoToHowItWorks}
           onGoToContact={handleGoToContact}
           onGoToLogin={handleGoToLogin}
+          onGoToManagerLogin={handleGoToManagerLogin}
+          onGoToPortalAccess={handleGoToPortalAccess}
           onGoToFleet={handleGoToFleet}
-          isAdminLoggedIn={isAdminLoggedIn}
+          isAdminLoggedIn={isAdminLoggedIn || isManagerLoggedIn || isServiceManagerLoggedIn}
           onLogout={handleLogout}
         />
         <main>

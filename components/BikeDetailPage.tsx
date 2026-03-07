@@ -64,7 +64,7 @@ const BookingWidget: React.FC<{ bike: Bike, searchParams: SearchParams | null, o
 
     const [currentSearchParams, setCurrentSearchParams] = useState<SearchParams>(getDefaultSearchParams());
 
-    const [addons, setAddons] = useState({ helmet: false, insurance: false });
+    const [addons, setAddons] = useState({ helmet: true, insurance: true });
 
     const getMinDate = () => {
         const now = new Date();
@@ -103,8 +103,9 @@ const BookingWidget: React.FC<{ bike: Bike, searchParams: SearchParams | null, o
 
         cost += Math.ceil(remainingHours) * bike.price.hour;
 
-        if (addons.helmet) cost += 50;
-        if (addons.insurance) cost += 100;
+        // Addons are now included
+        if (addons.helmet) cost += 0;
+        if (addons.insurance) cost += 0;
 
         const totalDays = (totalHours / 24).toFixed(1);
 
@@ -115,8 +116,8 @@ const BookingWidget: React.FC<{ bike: Bike, searchParams: SearchParams | null, o
         onBookNow(bike, currentSearchParams, addons, totalPrice);
     };
 
-    const isBookable = bike.availability === 'Available' || bike.availability === 'Limited';
-    const isComingSoon = bike.availability === 'Coming Soon';
+    const isComingSoon = bike.availability === 'Coming Soon' || bike.type !== 'Electric';
+    const isBookable = (bike.availability === 'Available' || bike.availability === 'Limited') && !isComingSoon;
 
     let buttonLabel = 'Book Now';
     let disableReason = '';
@@ -180,6 +181,9 @@ const BookingWidget: React.FC<{ bike: Bike, searchParams: SearchParams | null, o
                         </div>
                     </label>
                 </div>
+                <p className="text-[10px] text-gray-500 mt-2 italic px-1">
+                    *These prices are also included
+                </p>
             </div>
             {error && <p className="text-error text-sm mt-4">{error}</p>}
             <div className="mt-6 pt-4 border-t">
@@ -202,9 +206,9 @@ const BookingWidget: React.FC<{ bike: Bike, searchParams: SearchParams | null, o
                         <p className="text-sm text-yellow-800 font-medium">{disableReason}</p>
                     </div>
                 )}
-                <p className="text-xs text-gray-500 mt-2 text-center">Refundable deposit of ₹{bike.deposit} collected at pickup.</p>
+                <p className="text-xs text-gray-500 mt-2 text-center">Deposit of ₹{bike.deposit} collected at pickup.</p>
             </div>
-        </Card>
+        </Card >
     );
 }
 
@@ -243,9 +247,24 @@ const BikeDetailPage: React.FC<BikeDetailPageProps> = ({ bike, allBikes, searchP
                 {/* Left Column */}
                 <div className="lg:col-span-2 space-y-8">
                     <ImageCarousel images={bike.images} bikeName={bike.name} />
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-bold text-primary">{bike.name}</h1>
-                        <p className="text-lg text-gray-600 mt-1">{bike.type === 'Gear' ? "A timeless ride for the open road." : "Your perfect city companion."}</p>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="text-3xl md:text-4xl font-bold text-primary">{bike.name}</h1>
+                            <p className="text-lg text-gray-600 mt-1">{bike.type === 'Gear' ? "A timeless ride for the open road." : "Your perfect city companion."}</p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1.5">
+                            <div className={`px-4 py-1.5 text-[14px] font-bold rounded-full ${bike.availability?.toLowerCase() === 'available'
+                                ? 'bg-[#E8F5E9] text-[#2E7D32]'
+                                : 'bg-[#FFFDE7] text-[#F9A825]'
+                                }`}>
+                                {bike.availability}
+                            </div>
+                            {bike.availability?.toLowerCase() === 'available' && bike.availableCount !== undefined && (
+                                <span className="text-[14px] font-medium text-gray-500">
+                                    Units = {bike.availableCount}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     {/* Specs & Pricing */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -260,16 +279,22 @@ const BikeDetailPage: React.FC<BikeDetailPageProps> = ({ bike, allBikes, searchP
                         </div>
                         <div className="bg-accent p-6 rounded-xl">
                             <h3 className="text-lg font-heading font-extrabold uppercase tracking-widest text-primary">Pricing</h3>
-                            <ul className="mt-4 space-y-2 text-gray-700">
-                                <li className="flex justify-between"><span>Hourly Rate:</span><span className="font-semibold">₹{bike.price.hour}/hr</span></li>
-                                <li className="flex justify-between"><span>Daily Rate:</span><span className="font-semibold">₹{bike.price.day}/day</span></li>
-                                <li className="flex justify-between"><span>Weekly Rate:</span><span className="font-semibold">₹{bike.price.week}/week</span></li>
-                                <li className="flex justify-between"><span>Monthly Rate:</span><span className="font-semibold">₹{bike.price.month}/month</span></li>
-                                <li className="flex justify-between"><span>Quarterly Rate:</span><span className="font-semibold">₹{bike.price.quarterly}/qtr</span></li>
-                                <li className="flex justify-between"><span>Yearly Rate:</span><span className="font-semibold">₹{bike.price.yearly}/yr</span></li>
-                                <li className="flex justify-between"><span>Deposit:</span><span className="font-semibold">₹{bike.deposit} (Refundable)</span></li>
-                                <li className="flex justify-between"><span>Excess KM Charge:</span><span className="font-semibold">₹{bike.excessKmCharge}/km</span></li>
-                            </ul>
+                            {bike.type !== 'Electric' ? (
+                                <div className="mt-4 flex items-center justify-center p-8">
+                                    <span className="text-xl font-bold text-gray-400">Coming Soon</span>
+                                </div>
+                            ) : (
+                                <ul className="mt-4 space-y-2 text-gray-700">
+                                    <li className="flex justify-between"><span>Hourly Rate:</span><span className="font-semibold">₹{bike.price.hour}/hr</span></li>
+                                    <li className="flex justify-between"><span>Daily Rate:</span><span className="font-semibold">₹{bike.price.day}/day</span></li>
+                                    <li className="flex justify-between"><span>Weekly Rate:</span><span className="font-semibold">₹{bike.price.week}/week</span></li>
+                                    <li className="flex justify-between"><span>Monthly Rate:</span><span className="font-semibold">₹{bike.price.month}/month</span></li>
+                                    <li className="flex justify-between"><span>Quarterly Rate:</span><span className="font-semibold">₹{bike.price.quarterly}/qtr</span></li>
+                                    <li className="flex justify-between"><span>Yearly Rate:</span><span className="font-semibold">₹{bike.price.yearly}/yr</span></li>
+                                    <li className="flex justify-between"><span>Deposit:</span><span className="font-semibold">₹{bike.deposit} (Refundable)</span></li>
+                                    <li className="flex justify-between"><span>Excess KM Charge:</span><span className="font-semibold">₹{bike.excessKmCharge}/km</span></li>
+                                </ul>
+                            )}
                         </div>
                     </div>
                     {/* Assurances (Desktop) */}

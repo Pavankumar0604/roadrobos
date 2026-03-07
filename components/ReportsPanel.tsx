@@ -3,9 +3,6 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     LineChart, Line
 } from 'recharts';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
-import * as XLSX from 'xlsx';
 import { Transaction } from '../types';
 import Card from './Card';
 import { DocumentDownloadIcon } from './icons/Icons';
@@ -66,7 +63,8 @@ const ReportsPanel: React.FC<ReportsPanelProps> = ({ transactions }) => {
     }, [transactions, period]);
 
     // 2. Export to Excel
-    const exportToExcel = () => {
+    const exportToExcel = async () => {
+        const XLSX = await import('xlsx');
         const ws = XLSX.utils.json_to_sheet(transactions.map(t => ({
             ID: t.id,
             Customer: t.customerName,
@@ -81,7 +79,10 @@ const ReportsPanel: React.FC<ReportsPanelProps> = ({ transactions }) => {
     };
 
     // 3. Export to PDF
-    const exportToPDF = () => {
+    const exportToPDF = async () => {
+        const { jsPDF } = await import('jspdf');
+        await import('jspdf-autotable');
+
         const doc = new jsPDF();
         doc.text("RoadRobos Transaction Report", 14, 20);
 

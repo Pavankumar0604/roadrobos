@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { type BookingDetails, type Review } from '../types';
 import { CheckCircleIcon, StarIcon, DocumentDownloadIcon } from './icons/Icons';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 interface ConfirmationPageProps {
     bookingDetails: BookingDetails;
@@ -42,7 +40,10 @@ const ConfirmationPage: React.FC<ConfirmationPageProps> = ({ bookingDetails, onB
         alert('Coming Soon! Our app is currently under development.');
     };
 
-    const handleDownloadReceipt = () => {
+    const handleDownloadReceipt = async () => {
+        const { jsPDF } = await import('jspdf');
+        const { default: autoTable } = await import('jspdf-autotable');
+
         const doc = new jsPDF();
 
         doc.setFontSize(22);

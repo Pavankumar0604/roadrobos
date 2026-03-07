@@ -1,7 +1,5 @@
 import React, { useRef } from 'react';
 import { DocumentDownloadIcon } from './icons/Icons';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 const sections = [
     { id: 'defined-terms', title: 'Defined Terms' },
@@ -26,7 +24,7 @@ const TableOfContents: React.FC<{ onDownload: () => void }> = ({ onDownload }) =
             ))}
         </ul>
         <button onClick={onDownload} className="mt-6 inline-flex items-center gap-2 border border-primary text-primary font-semibold py-2 px-4 rounded-lg hover:bg-primary/5 transition text-sm">
-            <DocumentDownloadIcon className="h-5 w-5"/>
+            <DocumentDownloadIcon className="h-5 w-5" />
             Download PDF
         </button>
     </div>
@@ -35,9 +33,12 @@ const TableOfContents: React.FC<{ onDownload: () => void }> = ({ onDownload }) =
 const TermsPage: React.FC = () => {
     const contentRef = useRef<HTMLElement>(null);
 
-    const handleDownloadPDF = () => {
+    const handleDownloadPDF = async () => {
         const input = contentRef.current;
         if (input) {
+            const { jsPDF } = await import('jspdf');
+            const { default: html2canvas } = await import('html2canvas');
+
             // Temporarily hide the Table of Contents for a cleaner PDF
             const toc = input.parentElement?.querySelector('aside');
             if (toc) toc.style.display = 'none';

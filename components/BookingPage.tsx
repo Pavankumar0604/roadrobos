@@ -571,14 +571,14 @@ const BookingPage: React.FC<BookingPageProps> = ({ bookingDetails, onConfirmBook
                     <h4 className="font-semibold text-lg mb-2">Fare Breakdown</h4>
                     <div className="space-y-1 text-gray-700">
                       <div className="flex justify-between"><span>Base Fare</span><span>₹{onlineFareDetails.baseFare.toFixed(2)}</span></div>
-                      {addons.helmet && <div className="flex justify-between"><span>Extra Helmet</span><span>₹50.00</span></div>}
-                      {addons.insurance && <div className="flex justify-between"><span>Insurance</span><span>₹100.00</span></div>}
+                      {addons.helmet && <div className="flex justify-between"><span>Extra Helmet</span><span className="text-green-600 font-semibold">Included</span></div>}
+                      {addons.insurance && <div className="flex justify-between"><span>Insurance</span><span className="text-green-600 font-semibold">Included</span></div>}
                       {discount > 0 && <div className="flex justify-between text-green-600"><span>Discount</span><span>- ₹{discount.toFixed(2)}</span></div>}
                       <div className="flex justify-between text-gray-600 text-sm"><span>Platform Fee (2%)</span><span>₹{platformFee.toFixed(2)}</span></div>
 
                       <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2"><span>Total Payable</span><span>₹{totalPayable.toFixed(2)}</span></div>
                     </div>
-                    <p className="text-sm text-gray-500 mt-2">A refundable deposit of ₹{bike.deposit} will be collected at pickup.</p>
+                    <p className="text-sm text-gray-500 mt-2">A deposit of ₹{bike.deposit} will be collected at pickup.</p>
 
                     {/* Payment Fee Notice */}
                     <div className="mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-4 rounded-xl">

@@ -1,13 +1,25 @@
-// API Configuration
-// API Configuration
 import { supabase } from './supabaseClient';
-// Ensure no circular dependency via auth.ts
 import { signUp, signIn, signOut, resetPassword } from './auth';
+import { type Bike, type PickupLocation, type LocationStatus } from '../types';
+import { bikes as constantsBikes, pickupLocations as constantsLocations } from '../constants';
+import { getBikeImage, getFallbackImage } from './assets/bikeImports';
+
+// --- SUPABASE CONFIGURATION ---
+const isSupabaseConfigured = !!import.meta.env.VITE_SUPABASE_URL && !!import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Helper to handle Supabase errors consistent with previous API usage
-const handleResponse = ({ data, error }: { data: any, error: any }) => {
-    if (error) throw new Error(error.message);
+const handleResponse = ({ data, error, status }: { data: any, error: any, status?: number }) => {
+    if (error) {
+        console.error(`[Supabase Error] Status ${status || 'unknown'}:`, error);
+        throw new Error(error.message || 'Database operation failed');
+    }
     return data;
+};
+
+// Safe numeric conversion to prevent NaN errors
+const toN = (val: any) => {
+    const n = Number(val);
+    return isNaN(n) ? 0 : n;
 };
 
 // ============================================================================
@@ -73,6 +85,7 @@ export const userAPI = {
 
 export const bikeAPI = {
     getAll: async (filters?: { type?: string; availability?: string }) => {
+
         let query = supabase
             .from('bikes')
             .select(`
@@ -114,9 +127,18 @@ export const bikeAPI = {
                 month: bike.km_limit_month
             },
             excessKmCharge: bike.excess_km_charge,
-            images: bike.bike_images?.sort((a: any, b: any) => a.display_order - b.display_order).map((img: any) => img.image_url) || [],
-            colorVariants: bike.bike_color_variants || []
-        })).sort((a: any, b: any) => {
+            availableCount: bike.available_count || (bike.total_stock || 0) - (bike.booked_count || 0),
+            service_status: bike.service_status || 'none',
+            currentStatus: bike.current_status || 'readyRent',
+            checks: bike.checks || {},
+            assignedTech: bike.assigned_tech || '',
+            spareParts: bike.spare_parts || [],
+            partsReport: bike.parts_report || '',
+            images: bike.bike_images?.length > 0
+                ? bike.bike_images.sort((a: any, b: any) => a.display_order - b.display_order).map((img: any) => getBikeImage(img.image_url, bike.name))
+                : [getFallbackImage(bike.name)],
+            colorVariants: bike.bike_color_variants || undefined
+        })).filter((b: any) => b.images !== undefined).sort((a: any, b: any) => {
             const statusOrder = { 'Available': 0, 'Booked': 1, 'Maintenance': 2, 'Coming Soon': 3 };
             const orderA = statusOrder[a.availability as keyof typeof statusOrder] ?? 99;
             const orderB = statusOrder[b.availability as keyof typeof statusOrder] ?? 99;
@@ -125,6 +147,7 @@ export const bikeAPI = {
     },
 
     getById: async (id: number) => {
+
         const { data, error } = await supabase
             .from('bikes')
             .select(`
@@ -162,7 +185,14 @@ export const bikeAPI = {
                 month: data.km_limit_month
             },
             excessKmCharge: data.excess_km_charge,
-            images: data.bike_images?.sort((a: any, b: any) => a.display_order - b.display_order).map((img: any) => img.image_url) || [],
+            availableCount: data.available_count || (data.total_stock || 0) - (data.booked_count || 0),
+            service_status: data.service_status || 'none',
+            currentStatus: data.current_status || 'readyRent',
+            checks: data.checks || {},
+            assignedTech: data.assigned_tech || '',
+            spareParts: data.spare_parts || [],
+            partsReport: data.parts_report || '',
+            images: data.bike_images?.length > 0 ? data.bike_images.sort((a: any, b: any) => a.display_order - b.display_order).map((img: any) => getBikeImage(img.image_url, data.name)) : [getFallbackImage(data.name)],
             colorVariants: data.bike_color_variants || []
         };
     },
@@ -449,6 +479,7 @@ export const adminAPI = {
 
     // Bikes
     getBikes: async () => {
+
         // Fetch all bikes with related data
         const { data, error } = await supabase
             .from('bikes')
@@ -492,7 +523,16 @@ export const adminAPI = {
             },
             excessKmCharge: bike.excess_km_charge,
             deposit: bike.deposit || 0,
-            images: bike.bike_images?.sort((a: any, b: any) => a.display_order - b.display_order).map((img: any) => img.image_url) || [],
+            totalStock: bike.total_stock || 0,
+            bookedCount: bike.booked_count || 0,
+            availableCount: bike.available_count || (bike.total_stock || 0) - (bike.booked_count || 0),
+            service_status: bike.service_status || 'none',
+            currentStatus: bike.current_status || 'readyRent',
+            checks: bike.checks || {},
+            assignedTech: bike.assigned_tech || '',
+            spareParts: bike.spare_parts || [],
+            partsReport: bike.parts_report || '',
+            images: bike.bike_images?.length > 0 ? bike.bike_images.sort((a: any, b: any) => a.display_order - b.display_order).map((img: any) => getBikeImage(img.image_url, bike.name)) : [getFallbackImage(bike.name)],
             colorVariants: bike.bike_color_variants || []
         }));
     },
@@ -505,24 +545,37 @@ export const adminAPI = {
             availability: data.availability,
             cc: data.specs?.cc,
             transmission: data.specs?.transmission,
-            deposit: Number(data.deposit),
+            deposit: toN(data.deposit),
 
             // Prices
-            price_hour: Number(data.price?.hour),
-            price_day: Number(data.price?.day),
-            price_week: Number(data.price?.week),
-            price_month: Number(data.price?.month),
+            price_hour: toN(data.price?.hour),
+            price_day: toN(data.price?.day),
+            price_week: toN(data.price?.week),
+            price_month: toN(data.price?.month),
+
+            // Stock
+            total_stock: toN(data.totalStock || 0),
+            booked_count: toN(data.bookedCount || 0),
+            available_count: toN((data.totalStock || 0) - (data.bookedCount || 0)),
 
             // Limits
-            km_limit_hour: Number(data.kmLimit?.hour || 0),
-            km_limit_day: Number(data.kmLimit?.day || 0),
-            km_limit_week: Number(data.kmLimit?.week || 0),
-            km_limit_month: Number(data.kmLimit?.month || 0),
-            excess_km_charge: Number(data.excessKmCharge || 0),
+            km_limit_hour: toN(data.kmLimit?.hour || 0),
+            km_limit_day: toN(data.kmLimit?.day || 0),
+            km_limit_week: toN(data.kmLimit?.week || 0),
+            km_limit_month: toN(data.kmLimit?.month || 0),
+            excess_km_charge: toN(data.excessKmCharge || 0),
 
             // Min Booking
-            min_booking_hour: Number(data.minBookingDur?.hour || 0),
-            min_booking_day: Number(data.minBookingDur?.day || 0)
+            min_booking_hour: toN(data.minBookingDur?.hour || 0),
+            min_booking_day: toN(data.minBookingDur?.day || 0),
+
+            // Service Fields
+            service_status: data.service_status || 'none',
+            current_status: data.currentStatus || 'readyRent',
+            checks: data.checks || {},
+            assigned_tech: data.assignedTech || '',
+            spare_parts: data.spareParts || [],
+            parts_report: data.partsReport || ''
         };
 
         // 2. Insert into bikes table
@@ -553,42 +606,61 @@ export const adminAPI = {
     },
 
     updateBike: async (id: number, data: any) => {
-        // 1. Prepare flat bike object
-        const bikePayload = {
-            name: data.name,
-            type: data.type,
-            availability: data.availability,
-            cc: data.specs?.cc,
-            transmission: data.specs?.transmission,
-            deposit: Number(data.deposit),
+        // 1. Prepare dynamic bike payload (Partial Updates)
+        const bikePayload: any = {};
 
-            // Prices
-            price_hour: Number(data.price?.hour),
-            price_day: Number(data.price?.day),
-            price_week: Number(data.price?.week),
-            price_month: Number(data.price?.month),
+        if (data.name !== undefined) bikePayload.name = data.name;
+        if (data.type !== undefined) bikePayload.type = data.type;
+        if (data.availability !== undefined) bikePayload.availability = data.availability;
+        if (data.specs?.cc !== undefined) bikePayload.cc = data.specs.cc;
+        if (data.specs?.transmission !== undefined) bikePayload.transmission = data.specs.transmission;
+        if (data.deposit !== undefined) bikePayload.deposit = toN(data.deposit);
 
-            // Limits
-            km_limit_hour: Number(data.kmLimit?.hour || 0),
-            km_limit_day: Number(data.kmLimit?.day || 0),
-            km_limit_week: Number(data.kmLimit?.week || 0),
-            km_limit_month: Number(data.kmLimit?.month || 0),
-            excess_km_charge: Number(data.excessKmCharge || 0),
+        // Prices
+        if (data.price?.hour !== undefined) bikePayload.price_hour = toN(data.price.hour);
+        if (data.price?.day !== undefined) bikePayload.price_day = toN(data.price.day);
+        if (data.price?.week !== undefined) bikePayload.price_week = toN(data.price.week);
+        if (data.price?.month !== undefined) bikePayload.price_month = toN(data.price.month);
+        if (data.price?.quarterly !== undefined) bikePayload.price_quarterly = toN(data.price.quarterly);
+        if (data.price?.yearly !== undefined) bikePayload.price_yearly = toN(data.price.yearly);
 
-            // Min Booking
-            min_booking_hour: Number(data.minBookingDur?.hour || 0),
-            min_booking_day: Number(data.minBookingDur?.day || 0)
-        };
+        // Stock (Only update if explicitly provided, avoid resetting to 0)
+        if (data.totalStock !== undefined) {
+            bikePayload.total_stock = toN(data.totalStock);
+            if (data.bookedCount !== undefined) {
+                bikePayload.booked_count = toN(data.bookedCount);
+                bikePayload.available_count = toN(data.totalStock - data.bookedCount);
+            }
+        }
+
+        // Limits
+        if (data.kmLimit?.hour !== undefined) bikePayload.km_limit_hour = toN(data.kmLimit.hour);
+        if (data.kmLimit?.day !== undefined) bikePayload.km_limit_day = toN(data.kmLimit.day);
+        if (data.kmLimit?.week !== undefined) bikePayload.km_limit_week = toN(data.kmLimit.week);
+        if (data.kmLimit?.month !== undefined) bikePayload.km_limit_month = toN(data.kmLimit.month);
+        if (data.excessKmCharge !== undefined) bikePayload.excess_km_charge = toN(data.excessKmCharge);
+
+        // Min Booking
+        if (data.minBookingDur?.hour !== undefined) bikePayload.min_booking_hour = toN(data.minBookingDur.hour);
+        if (data.minBookingDur?.day !== undefined) bikePayload.min_booking_day = toN(data.minBookingDur.day);
+
+        // Service Fields
+        if (data.service_status !== undefined) bikePayload.service_status = data.service_status;
+        if (data.currentStatus !== undefined) bikePayload.current_status = data.currentStatus;
+        if (data.checks !== undefined) bikePayload.checks = data.checks;
+        if (data.assignedTech !== undefined) bikePayload.assigned_tech = data.assignedTech;
+        if (data.spareParts !== undefined) bikePayload.spare_parts = data.spareParts;
+        if (data.partsReport !== undefined) bikePayload.parts_report = data.partsReport;
 
         // 2. Update bikes table
-        const { data: bike, error } = await supabase
+        const { data: bike, error, status } = await supabase
             .from('bikes')
             .update(bikePayload)
             .eq('id', id)
             .select()
             .single();
 
-        if (error) throw error;
+        return handleResponse({ data: bike, error, status });
 
         // 3. Update images (Delete all and re-insert)
         if (data.images) {
@@ -669,11 +741,28 @@ export const adminAPI = {
     updateReview: async (id: string, data: any) => handleResponse(await supabase.from('reviews').update({ status: data.status }).eq('id', id)),
     deleteReview: async (id: string) => handleResponse(await supabase.from('reviews').delete().eq('id', id)),
 
+
+
     // Locations (using pickup_locations table)
-    getLocations: async () => {
+    getLocations: async (): Promise<PickupLocation[]> => {
         const { data, error } = await supabase.from('pickup_locations').select('*').eq('is_active', true);
-        if (error) throw error;
-        return data?.map((l: any) => l.name) || [];
+        if (error) {
+            console.warn("Failed to fetch locations, using constants:", error);
+            return constantsLocations;
+        }
+
+        return (data || []).map((l: any) => {
+            let status: LocationStatus = 'active';
+            const name = l.name.toLowerCase();
+
+            if (name.includes('jayanagar') || name.includes('koramangala')) {
+                status = 'busy';
+            } else if (name.includes('ejipura') || name.includes('kanakapura')) {
+                status = 'unavailable';
+            }
+
+            return { name: l.name, status };
+        });
     },
     createLocation: async (name: string) => handleResponse(await supabase.from('pickup_locations').insert({ name, is_active: true })),
     updateLocation: async (oldName: string, name: string) => handleResponse(await supabase.from('pickup_locations').update({ name }).eq('name', oldName)),
@@ -701,6 +790,64 @@ export const adminAPI = {
             status: app.status
         })) || [];
     },
+
+    // Bike Units (Individual Assets)
+    getBikeUnits: async () => {
+        const { data, error } = await supabase
+            .from('bike_units')
+            .select(`
+                *,
+                bikes (name, type)
+            `)
+            .order('unit_number', { ascending: true });
+        if (error) throw error;
+        return data;
+    },
+
+    addBikeUnit: async (unit: any) => {
+        const { data, error } = await supabase
+            .from('bike_units')
+            .insert(unit)
+            .select()
+            .single();
+        if (error) throw error;
+        return data;
+    },
+
+    updateBikeUnit: async (id: string, updates: any) => {
+        // Map camelCase to snake_case for updates if needed, though most units use snake_case
+        const payload: any = {};
+        if (updates.status !== undefined) payload.status = updates.status;
+        if (updates.unit_number !== undefined) payload.unit_number = updates.unit_number;
+        if (updates.color_name !== undefined) payload.color_name = updates.color_name;
+        if (updates.last_service_km !== undefined) payload.last_service_km = updates.last_service_km;
+
+        // Service fields mapping (matches SQL addition)
+        if (updates.service_status !== undefined) payload.service_status = updates.service_status;
+        if (updates.checks !== undefined) payload.checks = updates.checks;
+        if (updates.assigned_tech !== undefined) payload.assigned_tech = updates.assigned_tech;
+        if (updates.spare_parts !== undefined) payload.spare_parts = updates.spare_parts;
+        if (updates.parts_report !== undefined) payload.parts_report = updates.parts_report;
+
+        const { data, error, status } = await supabase
+            .from('bike_units')
+            .update(payload)
+            .eq('id', id)
+            .select()
+            .single();
+
+        return handleResponse({ data, error, status });
+    },
+
+    deleteBikeUnit: async (id: string) => {
+        const { error } = await supabase
+            .from('bike_units')
+            .delete()
+            .eq('id', id);
+        if (error) throw error;
+        return true;
+    },
+
     createApplication: async (data: any) => {
         // Use Edge Function to bypass RLS
         const requestData = {
@@ -773,6 +920,60 @@ export const adminAPI = {
     resetUserPassword: async (id: string, password: string) => {
         // Also restricted
         return { success: false, error: 'Not implemented client-side' };
+    },
+
+    // Parts Inventory
+    getPartsInventory: async () => {
+        const { data, error } = await supabase.from('parts_inventory').select('*').order('sr_no', { ascending: true });
+        if (error) throw error;
+        return (data || []).map((p: any) => ({
+            srNo: p.sr_no,
+            name: p.name,
+            price: p.price,
+            category: p.category,
+            stock: { current: p.stock_current, min: p.stock_min, max: p.stock_max },
+            highValue: p.high_value,
+            lastOrdered: p.last_ordered,
+            compatibleModels: p.compatible_models || []
+        }));
+    },
+
+    updatePartStock: async (srNo: number, delta: number) => {
+        // Atomic update would be better via RPC, but for now simple fetch-update or direct update if we trust current
+        // Let's use a simple update for stock_current
+        const { data: currentPart, error: fetchError } = await supabase.from('parts_inventory').select('stock_current').eq('sr_no', srNo).single();
+        if (fetchError) throw fetchError;
+
+        const newStock = Math.max(0, (currentPart.stock_current || 0) + delta);
+        const { data, error } = await supabase
+            .from('parts_inventory')
+            .update({ stock_current: newStock })
+            .eq('sr_no', srNo)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    getServiceLogs: async () => {
+        const { data, error } = await supabase
+            .from('service_logs')
+            .select(`
+                *,
+                bike: bikes(name)
+            `)
+            .order('completed_at', { ascending: false });
+        if (error) throw error;
+        return (data || []).map((l: any) => ({
+            id: l.id,
+            name: l.bike?.name || 'Unknown Bike',
+            tech: l.technician || 'Staff',
+            parts: (l.parts_replaced || []).join(', '),
+            cost: l.cost,
+            date: l.completed_at ? new Date(l.completed_at).toLocaleDateString() : 'Recent',
+            status: 'Verified'
+        }));
     },
 };
 

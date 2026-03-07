@@ -20,6 +20,19 @@ export default defineConfig(({ mode }) => {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'react-vendor': ['react', 'react-dom'],
+            'charts': ['recharts'],
+            'motion': ['framer-motion'],
+            'pdf-utils': ['jspdf', 'jspdf-autotable', 'html2canvas'],
+            'excel-utils': ['xlsx'],
+          }
+        }
+      }
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
