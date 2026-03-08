@@ -148,7 +148,7 @@ const BookingManagementPanel: React.FC<BookingManagementPanelProps> = ({ initial
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold font-sans">Bookings</h1>
+                    <h1 className="text-3xl font-black uppercase tracking-widest bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent drop-shadow-sm">Bookings</h1>
                     <p className="text-gray-600 mt-1">
                         Manage all bike rental bookings.
                         <span className="ml-2 font-semibold text-green-600">{activeBookings.length} Active</span>

@@ -238,7 +238,7 @@ const ManagerDashboard: React.FC<ManagerDashboardProps> = (props) => {
                 <h1 className="text-2xl font-bold text-white leading-tight">RoAd RoBo's</h1>
                 <p className="text-sm opacity-80 text-white/80">Manager Panel</p>
             </div>
-            <nav className="flex-grow p-3 overflow-y-auto">
+            <nav className="flex-grow p-3 overflow-y-auto scrollbar-hide">
                 {navItems.map(item => {
                     const isActive = activePanel === item.id;
                     return (

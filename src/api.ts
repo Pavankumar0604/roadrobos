@@ -1,4 +1,8 @@
 import { supabase } from './supabaseClient';
+
+// Cache the isolated GoTrue client so it doesn't leak memory on repeated clicks
+let isolatedTempClient: any = null;
+
 import { signUp, signIn, signOut, resetPassword } from './auth';
 import { type Bike, type PickupLocation, type LocationStatus } from '../types';
 import { bikes as constantsBikes, pickupLocations as constantsLocations } from '../constants';
@@ -464,18 +468,14 @@ export const adminAPI = {
     getTransactions: async () => {
         const { data, error } = await supabase
             .from('transactions')
-            .select(`
-                *,
-                bookings (booking_id),
-                users (name, email)
-            `)
+            .select('*')
             .order('created_at', { ascending: false });
 
         if (error) throw new Error(error.message);
 
         return data.map((t: any) => ({
             ...t,
-            customerName: t.customer_name || t.users?.name || 'Guest User',
+            customerName: t.customer_name || 'Guest User',
             bookingId: t.booking_id || t.bookings?.booking_id
         }));
     },
@@ -921,22 +921,71 @@ export const adminAPI = {
             .from('admin_users')
             .select(`
                 id, role,
-                users(id, name, email)
+                users(id, full_name, email)
             `);
         if (error) throw error;
         return data.map((au: any) => ({
             id: au.id,
             role: au.role,
             user_id: au.users?.id,
-            name: au.users?.name,
+            name: au.users?.full_name || au.users?.name || 'Unknown User',
             email: au.users?.email
         }));
     },
     createAdminUser: async (data: any) => {
-        // This is complex because it involves creating an Auth user + Admin entry
-        // Should ideally be an Edge Function 'create-admin-user'
-        console.warn('Creating admin user requires Edge Function or Service Role');
-        return { success: false, error: 'Not implemented client-side' };
+        try {
+            // 1. Singleton pattern for the temporary client to prevent the 
+            // "Multiple GoTrueClient instances detected" browser warning.
+            if (!isolatedTempClient) {
+                const { createClient } = await import('@supabase/supabase-js');
+                isolatedTempClient = createClient(
+                    import.meta.env.VITE_SUPABASE_URL,
+                    import.meta.env.VITE_SUPABASE_ANON_KEY,
+                    {
+                        auth: {
+                            persistSession: false,
+                            autoRefreshToken: false,
+                            storageKey: 'temp-admin-auth-token'
+                        }
+                    }
+                );
+            }
+
+            // 2. Sign up the new user in Supabase Auth
+            const { data: authData, error: authError } = await isolatedTempClient.auth.signUp({
+                email: data.email,
+                password: data.password,
+                options: { data: { name: data.name } }
+            });
+
+            if (authError) throw authError;
+            if (!authData.user) throw new Error('User creation failed to return a user object.');
+
+            // 3. SECURE RPC INSERT bypassing RLS front-door locks
+            const { error: adminError } = await supabase.rpc('assign_admin_role', {
+                target_user_id: authData.user.id,
+                target_role: data.role
+            });
+
+            if (adminError) throw adminError;
+
+            // Wait a moment for the database trigger to populate `public.users` just in case
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            return { success: true, user: authData.user };
+        } catch (err: any) {
+            console.error('Failed to create admin:', err);
+
+            // Handle Supabase Auth Rate Limiting Dynamic Timeframes
+            if (err.message && err.message.includes('seconds')) {
+                return {
+                    success: false,
+                    error: `Supabase security limits new Admin registrations. ${err.message}`
+                };
+            }
+
+            return { success: false, error: err.message || 'Unknown error occurred' };
+        }
     },
     resetUserPassword: async (id: string, password: string) => {
         // Also restricted

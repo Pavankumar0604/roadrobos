@@ -687,7 +687,7 @@ const ServiceManagerDashboard: React.FC<ServiceManagerDashboardProps> = ({ user,
                 <h1 className="text-2xl font-bold text-white leading-tight">RoAd RoBo's</h1>
                 <p className="text-sm opacity-80 text-white/80">Service Hub</p>
             </div>
-            <nav className="flex-grow p-3 overflow-y-auto">
+            <nav className="flex-grow p-3 overflow-y-auto scrollbar-hide">
                 <button
                     onClick={() => setActivePanel('dashboard')}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition mb-1 ${activePanel === 'dashboard'

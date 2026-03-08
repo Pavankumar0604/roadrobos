@@ -54,7 +54,11 @@ export async function signIn(email: string, password: string) {
     });
 
     if (error) {
-        return { success: false, error: error.message };
+        let message = error.message;
+        if (message.toLowerCase().includes('email not confirmed')) {
+            message = 'Email address not confirmed. Please check your inbox or contact the admin to verify your account.';
+        }
+        return { success: false, error: message };
     }
 
     return {

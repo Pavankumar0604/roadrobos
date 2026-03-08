@@ -344,10 +344,11 @@ const App: React.FC = () => {
 
   const handleLoginSuccess = (user: AdminUser) => {
     setLoggedInUser(user);
-    if (user.role.name === 'Manager') {
+    const roleName = user.role.name;
+    if (roleName === 'General Manager' || roleName === 'Manager') {
       setIsManagerLoggedIn(true);
       navigateTo('managerDashboard');
-    } else if (user.role.name === 'Service Manager') {
+    } else if (roleName === 'Service Manager') {
       setIsServiceManagerLoggedIn(true);
       navigateTo('serviceManagerDashboard');
     } else {

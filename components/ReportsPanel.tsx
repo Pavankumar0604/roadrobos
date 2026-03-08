@@ -128,7 +128,7 @@ const ReportsPanel: React.FC<ReportsPanelProps> = ({ transactions }) => {
         <div className="space-y-6 animate-fade-in">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold font-sans">Reports & Analytics</h1>
+                    <h1 className="text-3xl font-black uppercase tracking-widest bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent drop-shadow-sm">Reports & Analytics</h1>
                     <p className="text-gray-600 mt-1">Visualize revenue and booking trends.</p>
                 </div>
                 <div className="flex gap-2 bg-gray-100 rounded-lg p-1">

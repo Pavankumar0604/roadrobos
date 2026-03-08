@@ -428,9 +428,11 @@ export const partnerFaqs: PartnerFAQ[] = [
 ];
 
 export const adminRoles: { [key: string]: Role } = {
-  superAdmin: { id: 'r1', name: 'Super Admin', permissions: ['*'] },
-  contentEditor: { id: 'r2', name: 'Content Editor', permissions: ['edit_content', 'edit_settings'] },
-  supportStaff: { id: 'r3', name: 'Support Staff', permissions: ['view_bookings'] },
+  superAdmin: { id: 'super_admin', name: 'Super Admin', permissions: ['*'] },
+  generalManager: { id: 'generalmanager', name: 'General Manager', permissions: ['view_dashboard', 'manage_fleet', 'manage_users'] },
+  serviceManager: { id: 'servicemanager', name: 'Service Manager', permissions: ['view_dashboard', 'manage_service'] },
+  contentEditor: { id: 'content_editor', name: 'Content Editor', permissions: ['edit_content', 'edit_settings'] },
+  supportStaff: { id: 'staff', name: 'Support Staff', permissions: ['view_bookings'] },
 };
 
 export const initialAdminUsers: AdminUser[] = [

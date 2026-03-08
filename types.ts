@@ -198,7 +198,7 @@ export interface PartnerFAQ {
 
 export interface Role {
   id: string;
-  name: 'Super Admin' | 'Content Editor' | 'Support Staff' | 'Manager' | 'Service Manager';
+  name: 'Super Admin' | 'Content Editor' | 'Support Staff' | 'Manager' | 'Service Manager' | 'General Manager';
   permissions: string[];
 }
 

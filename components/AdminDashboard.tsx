@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { type AdminUser, type Bike, type BikeUnit, type Offer, type Enquiry, AvailabilityStatus, type Review, type Transaction, type Employee, type SiteContent, type Role, type Application, type PickupLocation, type LocationStatus } from '../types';
 import { CogIcon, LogoutIcon, PencilAltIcon, UsersIcon, ViewGridIcon, XIcon, MenuAlt2Icon, ClipboardListIcon, LocationMarkerIcon, TagIcon, MailIcon, TrashIcon, PlusIcon, StarIcon, CreditCardIcon, DocumentCheckIcon, DocumentDownloadIcon, ChartBarIcon } from './icons/Icons';
 import Card from './Card';
+import { GradientStatCard, OutlinedStatCard } from './shared/GradientStatCard';
 import { adminRoles } from '../constants';
 import api from '../src/api';
 import ReportsPanel from './ReportsPanel';
@@ -140,26 +141,28 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
 
     const SidebarContent = () => (
         <>
-            <div className="p-4 border-b border-white/20 text-center">
-                <h1 className="text-2xl font-bold leading-tight">RoAd RoBo's</h1>
-                <span className="text-sm opacity-80">Admin Panel</span>
+            <div className="p-6 text-center border-b border-white/20">
+                <h1 className="text-2xl font-bold text-white leading-tight">RoAd RoBo's</h1>
+                <p className="text-sm opacity-80 text-white/80">Admin Panel</p>
             </div>
-            <nav className="flex-grow p-3 overflow-y-auto">
+            <nav className="flex-grow p-3 overflow-y-auto scrollbar-hide">
                 {navItems.map(item => (
                     <button
                         key={item.id}
                         onClick={() => handleNavClick(item.id as AdminPanel)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition mb-1 ${activePanel === item.id ? 'bg-white/20' : 'hover:bg-white/10'
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition mb-1 ${activePanel === item.id
+                            ? 'bg-white/20 text-white'
+                            : 'text-white/70 hover:bg-white/10 hover:text-white'
                             }`}
                     >
-                        <div>{item.icon}</div>
+                        <div className="shrink-0">{item.icon}</div>
                         <span>{item.label}</span>
                     </button>
                 ))}
             </nav>
             <div className="p-4 border-t border-white/20 bg-black/10">
                 <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white font-bold border border-white/10">
                         {user.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1">
@@ -167,7 +170,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
                         <p className="text-xs text-green-200/70 font-medium uppercase tracking-wider">Administrator</p>
                     </div>
                 </div>
-                <button onClick={onLogout} className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold py-2.5 rounded-lg text-sm transition-all duration-200 hover:shadow-lg">
+                <button onClick={onLogout} className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold py-2.5 rounded-lg text-sm transition-all duration-200">
                     <LogoutIcon className="w-5 h-5" /> Logout
                 </button>
             </div>
@@ -175,39 +178,43 @@ const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
     );
 
     return (
-        <div className="flex min-h-screen bg-accent">
-            {/* Sidebar (Desktop) */}
-            <aside className="hidden lg:flex w-64 bg-primary text-white flex-col shadow-xl">
+        <div className="flex min-h-screen bg-accent font-sans selection:bg-primary/20 overflow-x-hidden">
+            {/* Ambient Background Elements — identical to Manager/Service panels */}
+            <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+                <div className="absolute top-[-15%] right-[-10%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-[160px]" />
+                <div className="absolute bottom-[5%] left-[-5%] w-[45%] h-[45%] bg-primary-light/5 rounded-full blur-[140px]" />
+            </div>
+
+            {/* Sidebar (Desktop) — fixed + h-screen matching Manager/Service */}
+            <aside className="hidden lg:flex w-64 bg-primary text-white flex-col h-screen fixed shadow-2xl z-50">
                 <SidebarContent />
             </aside>
+
+            {/* Content Spacer for fixed sidebar */}
+            <div className="hidden lg:block w-64 flex-shrink-0" />
 
             {/* Mobile Sidebar */}
-            <div className={`
-                fixed inset-0 bg-black/50 z-40 transition-opacity lg:hidden
-                ${isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
-            `} onClick={() => setIsSidebarOpen(false)}></div>
-
-            <aside className={`
-                fixed inset-y-0 left-0 w-64 bg-primary text-white flex flex-col z-50 transform transition-transform lg:hidden
-                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-            `}>
-                <SidebarContent />
-            </aside>
-
-            <div className="flex-1 flex flex-col min-w-0">
-                {/* Topbar (Mobile) */}
-                <header className="lg:hidden flex items-center justify-between p-4 bg-primary text-white sticky top-0 z-30 shadow-md">
-                    <button onClick={() => setIsSidebarOpen(true)}>
-                        <MenuAlt2Icon className="w-6 h-6" />
-                    </button>
-                    <h1 className="text-xl font-bold italic">RoAd RoBo's</h1>
-                    <div className="w-6"></div>
-                </header>
-
-                <main className="p-4 md:p-8 flex-grow">
-                    {renderPanel()}
-                </main>
+            <div className={`fixed inset-0 z-[100] lg:hidden ${isSidebarOpen ? 'block' : 'hidden'}`}>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)}></div>
+                <aside className={`fixed top-0 left-0 h-full w-64 bg-primary text-white flex flex-col transition-transform duration-500 ease-out shadow-2xl ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                    <SidebarContent />
+                </aside>
             </div>
+
+            {/* Main Content */}
+            <main className="flex-1 p-2 md:p-6 lg:p-8 overflow-y-auto max-h-screen scrollbar-hide flex flex-col w-full overflow-x-hidden">
+                <div className="lg:hidden flex items-center justify-between mb-4 mt-2">
+                    <div className="flex items-center">
+                        <button onClick={() => setIsSidebarOpen(true)} className="p-2 rounded-md text-gray-600 hover:bg-gray-200">
+                            <MenuAlt2Icon className="w-6 h-6" />
+                        </button>
+                        <h2 className="text-lg font-bold ml-4">Admin Panel</h2>
+                    </div>
+                </div>
+                <div className="flex-grow">
+                    {renderPanel()}
+                </div>
+            </main>
         </div>
     );
 };
@@ -238,92 +245,103 @@ const DashboardHomePanel: React.FC<{ user: AdminUser; setActivePanel: (panel: Ad
     }
 
     return (
-        <div className="animate-fade-in">
-            <h1 className="text-3xl font-bold text-text-body">Welcome back, {user.name}!</h1>
-            <p className="text-gray-600 mt-1">Here's a quick overview of your business.</p>
-
-            {/* Main Stats Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-8">
-                <Card className="p-6 text-center bg-green-600 text-white">
-                    <div>
-                        <div className="inline-block p-3 bg-white/20 rounded-full mb-2">
-                            <CreditCardIcon className="w-6 h-6" />
-                        </div>
-                        <h3 className="text-3xl font-bold mb-1">₹{(stats.totalRevenue || 0).toLocaleString()}</h3>
-                        <p className="text-sm">Total Revenue</p>
-                    </div>
-                </Card>
-                <Card className="p-6 text-center bg-blue-600 text-white">
-                    <div>
-                        <div className="inline-block p-3 bg-white/20 rounded-full mb-2">
-                            <ClipboardListIcon className="w-6 h-6" />
-                        </div>
-                        <h3 className="text-3xl font-bold mb-1">{stats.totalBookings}</h3>
-                        <p className="text-sm">Total Bookings</p>
-                    </div>
-                </Card>
-                <Card className="p-6 text-center bg-purple-600 text-white">
-                    <div>
-                        <div className="inline-block p-3 bg-white/20 rounded-full mb-2">
-                            <ViewGridIcon className="w-6 h-6" />
-                        </div>
-                        <h3 className="text-3xl font-bold mb-1">{stats.bikeCount}</h3>
-                        <p className="text-sm">Bikes in Fleet</p>
-                    </div>
-                </Card>
-                <Card className="p-6 text-center bg-orange-600 text-white">
-                    <div>
-                        <div className="inline-block p-3 bg-white/20 rounded-full mb-2">
-                            <ChartBarIcon className="w-6 h-6" />
-                        </div>
-                        <h3 className="text-3xl font-bold mb-1">{stats.fleetUtilization}%</h3>
-                        <p className="text-sm">Fleet Utilization</p>
-                    </div>
-                </Card>
+        <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-10">
+                <div>
+                    <h1 className="text-3xl font-bold text-text-body">Welcome back, {user.name}!</h1>
+                    <p className="text-gray-600 mt-1">Here's a quick overview of your business.</p>
+                </div>
             </div>
 
-            {/* Pending Items Row */}
-            {/* Pending Items Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-6">
-                <Card className="p-5 flex items-center justify-between border-l-4 border-yellow-500">
-                    <div>
-                        <p className="text-gray-600 text-sm font-medium">Pending Enquiries</p>
-                        <h3 className="text-3xl font-bold text-yellow-600 mt-1">{stats.pendingEnquiries}</h3>
-                    </div>
-                    <div className="bg-yellow-100 p-4 rounded-full">
-                        <MailIcon className="w-7 h-7 text-yellow-600" />
-                    </div>
-                </Card>
-                <Card className="p-5 flex items-center justify-between border-l-4 border-blue-500">
-                    <div>
-                        <p className="text-gray-600 text-sm font-medium">Pending Reviews</p>
-                        <h3 className="text-3xl font-bold text-blue-600 mt-1">{stats.pendingReviews}</h3>
-                    </div>
-                    <div className="bg-blue-100 p-4 rounded-full">
-                        <StarIcon className="w-7 h-7 text-blue-600" />
-                    </div>
-                </Card>
-                <Card className="p-5 flex items-center justify-between border-l-4 border-green-500">
-                    <div>
-                        <p className="text-gray-600 text-sm font-medium">New Applications</p>
-                        <h3 className="text-3xl font-bold text-green-600 mt-1">{stats.newPartners}</h3>
-                    </div>
-                    <div className="bg-green-100 p-4 rounded-full">
-                        <UsersIcon className="w-7 h-7 text-green-600" />
-                    </div>
-                </Card>
+            {/* Primary Stats Row — identical GradientStatCard as Manager/Service */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                <GradientStatCard
+                    label="Total Revenue"
+                    value={`₹${(stats.totalRevenue || 0).toLocaleString()}`}
+                    color="green"
+                    icon={CreditCardIcon}
+                    sublabel="All time earnings"
+                    onClick={() => setActivePanel('transactions')}
+                />
+                <GradientStatCard
+                    label="Total Bookings"
+                    value={stats.totalBookings}
+                    color="blue"
+                    icon={ClipboardListIcon}
+                    sublabel="Confirmed & active"
+                    onClick={() => setActivePanel('bookings')}
+                />
+                <GradientStatCard
+                    label="Bikes in Fleet"
+                    value={stats.bikeCount}
+                    color="purple"
+                    icon={ViewGridIcon}
+                    sublabel="Models in catalog"
+                    onClick={() => setActivePanel('fleet')}
+                />
+                <GradientStatCard
+                    label="Fleet Utilization"
+                    value={`${stats.fleetUtilization}%`}
+                    color="orange"
+                    icon={ChartBarIcon}
+                    sublabel="Active rental rate"
+                    onClick={() => setActivePanel('reports')}
+                />
             </div>
 
-            {/* Quick Actions */}
+            {/* Secondary Stats — OutlinedStatCard matching ManagerDashboard */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <OutlinedStatCard
+                    label="Pending Enquiries"
+                    value={stats.pendingEnquiries}
+                    color="yellow"
+                    icon={MailIcon}
+                    onClick={() => setActivePanel('enquiries')}
+                />
+                <OutlinedStatCard
+                    label="Pending Reviews"
+                    value={stats.pendingReviews}
+                    color="blue"
+                    icon={StarIcon}
+                    onClick={() => setActivePanel('reviews')}
+                />
+                <OutlinedStatCard
+                    label="New Applications"
+                    value={stats.newPartners}
+                    color="green"
+                    icon={UsersIcon}
+                    onClick={() => setActivePanel('applications')}
+                />
+            </div>
+
+            {/* Admin Quick Actions — matches Manager/Service 'Rapid Operations' card exactly */}
             <div className="mt-8">
-                <Card className="p-6">
-                    <h2 className="text-xl font-bold mb-4 text-text-body">Quick Actions</h2>
+                <Card className="p-8 border border-input/30 bg-white shadow-card rounded-2xl">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-black text-text-body tracking-tight uppercase italic">Admin Tools</h2>
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-widest rounded-md">Control Center</span>
+                    </div>
                     <div className="flex flex-wrap gap-4">
                         <button
                             onClick={() => setActivePanel('reports')}
-                            className="bg-primary text-white font-semibold py-3 px-6 rounded-lg hover:bg-primary-light transition flex items-center gap-2"
+                            className="group bg-primary text-white font-bold py-3.5 px-6 rounded-lg hover:bg-black transition-all flex items-center gap-3 shadow-md shadow-primary/20 active:scale-95 text-[11px] uppercase tracking-widest"
                         >
-                            <ChartBarIcon className="w-5 h-5" /> View Reports
+                            <ChartBarIcon className="w-5 h-5" />
+                            <span>View Reports</span>
+                        </button>
+                        <button
+                            onClick={() => setActivePanel('fleet')}
+                            className="group bg-secondary text-white font-bold py-3.5 px-6 rounded-lg hover:bg-secondary-light transition-all flex items-center gap-3 shadow-md shadow-secondary/20 active:scale-95 text-[11px] uppercase tracking-widest"
+                        >
+                            <ViewGridIcon className="w-5 h-5" />
+                            <span>Manage Fleet</span>
+                        </button>
+                        <button
+                            onClick={() => setActivePanel('applications')}
+                            className="group border border-input/50 text-text-body font-bold py-3.5 px-6 rounded-lg hover:border-primary/40 hover:bg-primary/5 transition-all flex items-center gap-3 active:scale-95 text-[11px] uppercase tracking-widest"
+                        >
+                            <DocumentCheckIcon className="w-5 h-5" />
+                            <span>Review Applications</span>
                         </button>
                     </div>
                 </Card>
@@ -479,7 +497,7 @@ const BikeManagementPanel: React.FC<{ fleet: Bike[]; setFleet: React.Dispatch<Re
         <div>
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold">Model Catalog</h1>
+                    <h1 className="text-3xl font-black uppercase tracking-widest bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent drop-shadow-sm">Model Catalog</h1>
                     <p className="text-gray-600 mt-1">Define bike variants and master data.</p>
                 </div>
                 <button onClick={handleAdd} className="bg-secondary text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2">
@@ -674,7 +692,7 @@ const LocationManagementPanel: React.FC<{ locations: PickupLocation[]; setLocati
         <div>
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold">Pickup Locations</h1>
+                    <h1 className="text-3xl font-black uppercase tracking-widest bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent drop-shadow-sm">Pickup Locations</h1>
                     <p className="text-gray-600 mt-1">Manage pickup and drop-off points.</p>
                 </div>
                 <button onClick={handleAdd} className="bg-secondary text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2"><PlusIcon className="w-5 h-5" /> Add Location</button>
@@ -1100,7 +1118,7 @@ const ContentManagementPanel: React.FC<{ siteContent: SiteContent, setSiteConten
 
     return (
         <div>
-            <h1 className="text-3xl font-bold">Content Management</h1>
+            <h1 className="text-3xl font-black uppercase tracking-widest bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent drop-shadow-sm">Content Management</h1>
             <p className="text-gray-600 mt-1">Edit the text content for various pages on your site.</p>
             <Card className="mt-8 p-6">
                 <div className="space-y-4">
@@ -1191,7 +1209,7 @@ const UserManagementPanel: React.FC<{ adminUsers: AdminUser[]; setAdminUsers: Re
                     email: user.email,
                     password: user.passwordHash, // temporary holding plain password
                     name: user.name,
-                    role: user.role.name
+                    role: user.role.id
                 });
 
                 // Refresh list
@@ -1208,7 +1226,7 @@ const UserManagementPanel: React.FC<{ adminUsers: AdminUser[]; setAdminUsers: Re
         <div>
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold">Users & Roles</h1>
+                    <h1 className="text-3xl font-black uppercase tracking-widest bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent drop-shadow-sm">Users & Roles</h1>
                     <p className="text-gray-600 mt-1">Manage administrators and their permissions.</p>
                 </div>
                 <button onClick={handleAdd} className="bg-secondary text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2"><PlusIcon className="w-5 h-5" /> Add New User</button>
@@ -1289,7 +1307,7 @@ const SiteSettingsPanel: React.FC<{ siteContent: SiteContent, setSiteContent: Re
 
     return (
         <div>
-            <h1 className="text-3xl font-bold">Site Settings</h1>
+            <h1 className="text-3xl font-black uppercase tracking-widest bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent drop-shadow-sm">Site Settings</h1>
             <p className="text-gray-600 mt-1">Update global site information.</p>
             <Card className="mt-8 p-6 space-y-6">
                 <div>

@@ -81,7 +81,7 @@ const TransactionManagementPanel: React.FC<TransactionPanelProps> = ({ transacti
         <div className="animate-fade-in">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold font-sans">Transactions</h1>
+                    <h1 className="text-3xl font-black uppercase tracking-widest bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent drop-shadow-sm">Transactions</h1>
                     <p className="text-gray-600 mt-1">View all payment records. Showing: {filteredTransactions.length} of {transactions.length}</p>
                 </div>
                 <button onClick={handleExport} className="border border-primary text-primary font-semibold py-2 px-4 rounded-lg flex items-center gap-2 hover:bg-gray-50 transition">
