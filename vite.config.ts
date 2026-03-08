@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => {
             'charts': ['recharts'],
             'motion': ['framer-motion'],
             'pdf-utils': ['jspdf', 'jspdf-autotable', 'html2canvas'],
-            'excel-utils': ['xlsx'],
+            'excel-utils': ['exceljs'],
             'supabase': ['@supabase/supabase-js'],
           }
         }

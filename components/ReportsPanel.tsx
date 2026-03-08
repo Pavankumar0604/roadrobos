@@ -64,18 +64,38 @@ const ReportsPanel: React.FC<ReportsPanelProps> = ({ transactions }) => {
 
     // 2. Export to Excel
     const exportToExcel = async () => {
-        const XLSX = await import('xlsx');
-        const ws = XLSX.utils.json_to_sheet(transactions.map(t => ({
-            ID: t.id,
-            Customer: t.customerName,
-            Amount: t.amount,
-            Status: t.status,
-            Date: new Date(t.date).toLocaleDateString(),
-            BookingID: t.bookingId
-        })));
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Transactions");
-        XLSX.writeFile(wb, "RoadRobos_Report.xlsx");
+        const ExcelJS = await import('exceljs');
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Transactions');
+
+        worksheet.columns = [
+            { header: 'ID', key: 'id', width: 15 },
+            { header: 'Customer', key: 'customerName', width: 25 },
+            { header: 'Amount', key: 'amount', width: 15 },
+            { header: 'Status', key: 'status', width: 15 },
+            { header: 'Date', key: 'date', width: 20 },
+            { header: 'BookingID', key: 'bookingId', width: 30 }
+        ];
+
+        transactions.forEach(t => {
+            worksheet.addRow({
+                id: t.id,
+                customerName: t.customerName,
+                amount: t.amount,
+                status: t.status,
+                date: new Date(t.date).toLocaleDateString(),
+                bookingId: t.bookingId
+            });
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "RoadRobos_Report.xlsx";
+        a.click();
+        window.URL.revokeObjectURL(url);
     };
 
     // 3. Export to PDF
