@@ -102,11 +102,16 @@ const ServiceCard: React.FC<{
     const currentStatus = bike.service_status || 'pending';
     const [isWorkbenchOpen, setIsWorkbenchOpen] = useState(false);
 
-    // Use the bike's existing checks or provide defaults
+    // Use the unit's specific checks/parts if available. Empty '{}' JSON from DB needs to fall back as well.
+    const unitChecks = (bike as any).unit?.checks || bike.checks;
+    const hasExistingChecks = unitChecks && typeof unitChecks === 'object' && Object.keys(unitChecks).length > 0;
+
+    const unitParts = (bike as any).unit?.spare_parts || bike.spareParts;
+
     const [localChecks, setLocalChecks] = useState<Record<string, string>>(
-        bike.checks || {
-            'Battery Health': 'completed',
-            'Motor Controller': 'completed',
+        hasExistingChecks ? unitChecks : {
+            'Battery Health': 'pending',
+            'Motor Controller': 'pending',
             'Hydraulic Brakes': 'pending',
             'Tire Pressure': 'pending',
             'System Flash': 'pending',
@@ -118,7 +123,7 @@ const ServiceCard: React.FC<{
         }
     );
 
-    const [selectedParts, setSelectedParts] = useState<any[]>(bike.spareParts || []);
+    const [selectedParts, setSelectedParts] = useState<any[]>(unitParts || []);
 
     const toggleCheck = (label: string) => {
         if (currentStatus !== 'in_progress') return;
@@ -304,25 +309,24 @@ const ServiceCard: React.FC<{
                                 ))}
                             </div>
 
-                            {currentStatus === 'in_progress' && (
-                                <div className="grid grid-cols-2 gap-2 p-2 bg-white border border-dashed border-input/30 rounded-lg max-h-48 overflow-y-auto scrollbar-hide">
-                                    {EEVA_ECO_PARTS.map(part => {
-                                        const isAlreadyAdded = selectedParts.some(p => (p.id === part.srNo || p.srNo === part.srNo));
-                                        return (
-                                            <button
-                                                key={part.srNo}
-                                                onClick={() => addPart({ ...part, id: part.srNo, cost: part.price })}
-                                                className={`p-2 border rounded-md text-left transition-all text-[9px] font-bold uppercase tracking-tight flex items-center justify-between group/part ${isAlreadyAdded
-                                                    ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
-                                                    : 'bg-white border-input/30 text-text-muted hover:border-primary/30 hover:text-text-body'}`}
-                                            >
-                                                <span className="truncate pr-1">{part.name}</span>
-                                                <span className={`${isAlreadyAdded ? 'text-emerald-500' : 'text-gray-400 group-hover/part:text-primary'}`}>+</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                            <div className="grid grid-cols-2 gap-2 p-2 bg-white border border-dashed border-input/30 rounded-lg max-h-48 overflow-y-auto scrollbar-hide">
+                                {EEVA_ECO_PARTS.map(part => {
+                                    const isAlreadyAdded = selectedParts.some(p => (p.id === part.srNo || p.srNo === part.srNo));
+                                    return (
+                                        <button
+                                            key={part.srNo}
+                                            disabled={currentStatus !== 'in_progress'}
+                                            onClick={() => addPart({ ...part, id: part.srNo, cost: part.price })}
+                                            className={`p-2 border rounded-md text-left transition-all text-[9px] font-bold uppercase tracking-tight flex items-center justify-between group/part ${isAlreadyAdded
+                                                ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
+                                                : currentStatus !== 'in_progress' ? 'bg-gray-50 border-input/10 text-gray-300 cursor-not-allowed' : 'bg-white border-input/30 text-text-muted hover:border-primary/30 hover:text-text-body'}`}
+                                        >
+                                            <span className="truncate pr-1">{part.name}</span>
+                                            <span className={`${isAlreadyAdded ? 'text-emerald-500' : 'text-gray-400 group-hover/part:text-primary'}`}>+</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -569,6 +573,9 @@ const ServiceManagerDashboard: React.FC<ServiceManagerDashboardProps> = ({ user,
                     id: u.id as any, // Cast to numeric-compatible for types, but it's a string
                     name: `${parent.name} - ${u.unit_number}`,
                     service_status: (u as any).service_status || 'pending',
+                    checks: (u as any).checks || parent.checks, // Persist unit's checks
+                    spareParts: (u as any).spare_parts || parent.spareParts, // Persist unit's parts
+                    assignedTech: (u as any).assigned_tech || parent.assignedTech, // Persist unit's tech
                     unit: u, // Attach unit info
                     availability: 'Service' as const
                 };

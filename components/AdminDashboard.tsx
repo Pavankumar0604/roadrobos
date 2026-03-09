@@ -571,19 +571,19 @@ const BikeManagementPanel: React.FC<{ fleet: Bike[]; setFleet: React.Dispatch<Re
                         <table className="min-w-full text-sm divide-y divide-card">
                             <thead className="bg-gray-50/50">
                                 <tr>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Bike</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Type</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Rates</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Deposit</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Fleet (T/B/A)</th>
-                                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
-                                    <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-text-muted uppercase tracking-wider">Actions</th>
+                                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Bike</th>
+                                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Type</th>
+                                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Rates</th>
+                                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Deposit</th>
+                                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Fleet (T/B/A)</th>
+                                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
+                                    <th scope="col" className="px-4 py-3 text-center text-xs font-semibold text-text-muted uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-card">
                                 {fleet.map(bike => (
                                     <tr key={bike.id}>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-4 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <div className="flex-shrink-0 h-12 w-16">
                                                     <img className="h-12 w-16 object-cover rounded-md bg-gray-100" src={bike.images[0]} alt={bike.name} />
@@ -594,27 +594,33 @@ const BikeManagementPanel: React.FC<{ fleet: Bike[]; setFleet: React.Dispatch<Re
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-text-muted">{bike.type}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-4 py-4 whitespace-nowrap text-text-muted">{bike.type}</td>
+                                        <td className="px-4 py-4">
                                             <div className="text-text-body font-medium">₹{bike.price.day} / day</div>
                                             <div className="text-text-muted text-xs">₹{bike.price.hour} / hr</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-text-muted">₹{bike.deposit}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-4 py-4 whitespace-nowrap text-text-muted">₹{bike.deposit}</td>
+                                        <td className="px-4 py-4">
                                             <div className="flex flex-col">
                                                 <span className="text-xs font-bold text-text-body">Live Stock: {bikeUnits.filter(u => Number(u.bike_id) === Number(bike.id)).length}</span>
                                                 <span className="text-[10px] text-error">On Field: {bikeUnits.filter(u => Number(u.bike_id) === Number(bike.id) && u.status === 'Rented').length}</span>
                                                 <span className="text-[10px] text-success">At Hub: {bikeUnits.filter(u => Number(u.bike_id) === Number(bike.id) && u.status === 'Ready').length}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
+                                        <td className="px-4 py-4 whitespace-nowrap">
                                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${bike.availability === 'Available' ? 'bg-green-100 text-green-800' :
                                                 bike.availability === 'Limited' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'
                                                 }`}>{bike.availability}</span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right font-medium space-x-4">
-                                            <button onClick={() => handleEdit(bike)} className="text-primary hover:underline">Edit</button>
-                                            <button onClick={() => handleDelete(bike.id)} className="text-error hover:underline">Delete</button>
+                                        <td className="px-4 py-4 text-center font-medium">
+                                            <div className="flex justify-center items-center gap-3">
+                                                <button onClick={() => handleEdit(bike)} className="text-primary hover:text-primary-dark transition-colors font-semibold px-2 py-1.5 rounded-lg hover:bg-primary/5 text-xs">
+                                                    Edit
+                                                </button>
+                                                <button onClick={() => handleDelete(bike.id)} className="text-error hover:text-error-dark transition-colors font-semibold px-2 py-1.5 rounded-lg hover:bg-error/5 text-xs">
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -851,7 +857,7 @@ const OfferManagementPanel: React.FC<{ offers: Offer[]; setOffers: React.Dispatc
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Discount</th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Total Uses</th>
-                                    <th className="px-6 py-3 text-right text-xs font-semibold text-text-muted uppercase tracking-wider">Actions</th>
+                                    <th className="px-6 py-3 text-center text-xs font-semibold text-text-muted uppercase tracking-wider min-w-[150px]">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-card">
@@ -868,9 +874,15 @@ const OfferManagementPanel: React.FC<{ offers: Offer[]; setOffers: React.Dispatc
                                             </button>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-text-muted">{offer.totalUses}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right font-medium space-x-4">
-                                            <button onClick={() => handleEdit(offer)} className="text-primary hover:underline">Edit</button>
-                                            <button onClick={() => handleDelete(offer.id)} className="text-error hover:underline">Delete</button>
+                                        <td className="px-6 py-4 whitespace-nowrap text-center font-medium">
+                                            <div className="flex justify-center items-center gap-3">
+                                                <button onClick={() => handleEdit(offer)} className="text-primary hover:text-primary-dark transition-colors font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-primary/5">
+                                                    Edit
+                                                </button>
+                                                <button onClick={() => handleDelete(offer.id)} className="text-error hover:text-error-dark transition-colors font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-error/5">
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -934,7 +946,7 @@ const EnquiryManagementPanel: React.FC<{ enquiries: Enquiry[]; setEnquiries: Rea
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">From</th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Message</th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-right text-xs font-semibold text-text-muted uppercase tracking-wider">Actions</th>
+                                    <th className="px-6 py-3 text-center text-xs font-semibold text-text-muted uppercase tracking-wider min-w-[150px]">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-card">
@@ -952,9 +964,15 @@ const EnquiryManagementPanel: React.FC<{ enquiries: Enquiry[]; setEnquiries: Rea
                                                 enquiry.status === 'Read' ? 'bg-gray-100 text-gray-800' : 'bg-green-100 text-green-800'
                                                 }`}>{enquiry.status}</span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right font-medium space-x-4">
-                                            <button onClick={() => setViewingEnquiry(enquiry)} className="text-primary hover:underline">View</button>
-                                            <button onClick={() => handleDelete(enquiry.id)} className="text-error hover:underline">Delete</button>
+                                        <td className="px-6 py-4 whitespace-nowrap text-center font-medium">
+                                            <div className="flex justify-center items-center gap-3">
+                                                <button onClick={() => setViewingEnquiry(enquiry)} className="text-primary hover:text-primary-dark transition-colors font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-primary/5">
+                                                    View
+                                                </button>
+                                                <button onClick={() => handleDelete(enquiry.id)} className="text-error hover:text-error-dark transition-colors font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-error/5">
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -1060,7 +1078,7 @@ const ReviewManagementPanel: React.FC<{ reviews: Review[]; setReviews: React.Dis
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Review</th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Rating</th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-right text-xs font-semibold text-text-muted uppercase tracking-wider">Actions</th>
+                                    <th className="px-6 py-3 text-center text-xs font-semibold text-text-muted uppercase tracking-wider min-w-[200px]">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-card">
@@ -1080,11 +1098,25 @@ const ReviewManagementPanel: React.FC<{ reviews: Review[]; setReviews: React.Dis
                                                 {review.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right font-medium space-x-2">
-                                            {review.status !== 'Approved' && <button onClick={() => handleStatusChange(review.id, 'Approved')} className="text-green-600 hover:underline">Approve</button>}
-                                            {review.status !== 'Rejected' && <button onClick={() => handleStatusChange(review.id, 'Rejected')} className="text-yellow-600 hover:underline">Reject</button>}
-                                            <button onClick={() => handleDelete(review.id)} className="text-error hover:underline">Delete</button>
-                                            <button onClick={() => handleBlockUser(review.userId)} className="text-error hover:underline">Block User</button>
+                                        <td className="px-6 py-4 whitespace-nowrap text-center font-medium">
+                                            <div className="flex justify-center items-center gap-2">
+                                                {review.status !== 'Approved' && (
+                                                    <button onClick={() => handleStatusChange(review.id, 'Approved')} className="text-green-600 hover:text-green-700 transition-colors font-semibold px-2 py-1 rounded hover:bg-green-50">
+                                                        Approve
+                                                    </button>
+                                                )}
+                                                {review.status !== 'Rejected' && (
+                                                    <button onClick={() => handleStatusChange(review.id, 'Rejected')} className="text-yellow-600 hover:text-yellow-700 transition-colors font-semibold px-2 py-1 rounded hover:bg-yellow-50">
+                                                        Reject
+                                                    </button>
+                                                )}
+                                                <button onClick={() => handleDelete(review.id)} className="text-error hover:text-error-dark transition-colors font-semibold px-2 py-1 rounded hover:bg-error/5">
+                                                    Delete
+                                                </button>
+                                                <button onClick={() => handleBlockUser(review.userId)} className="text-error border border-error/20 hover:bg-error/5 transition-colors font-semibold px-2 py-1 rounded text-xs">
+                                                    Block
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -1100,15 +1132,27 @@ const ReviewManagementPanel: React.FC<{ reviews: Review[]; setReviews: React.Dis
 
 const ContentManagementPanel: React.FC<{ siteContent: SiteContent, setSiteContent: React.Dispatch<React.SetStateAction<SiteContent>> }> = ({ siteContent, setSiteContent }) => {
     const [content, setContent] = useState(siteContent);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
     useEffect(() => {
         setContent(siteContent);
     }, [siteContent]);
 
     const handleSave = async () => {
-        await api.admin.updateSiteContent(content);
-        setSiteContent(content);
-        alert('Content Saved!');
+        setIsSaving(true);
+        setSaveStatus('idle');
+        try {
+            await api.admin.updateSiteContent(content);
+            setSiteContent(content);
+            setSaveStatus('success');
+            setTimeout(() => setSaveStatus('idle'), 3000); // Clear success message after 3s
+        } catch (error) {
+            console.error("Failed to save content", error);
+            setSaveStatus('error');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleHomeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -1117,25 +1161,114 @@ const ContentManagementPanel: React.FC<{ siteContent: SiteContent, setSiteConten
     };
 
     return (
-        <div>
-            <h1 className="text-3xl font-black uppercase tracking-widest bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent drop-shadow-sm">Content Management</h1>
-            <p className="text-gray-600 mt-1">Edit the text content for various pages on your site.</p>
-            <Card className="mt-8 p-6">
-                <div className="space-y-4">
-                    <div>
-                        <label htmlFor="content-title" className="block text-sm font-medium mb-1">Home Page Hero Title Template</label>
-                        <input type="text" id="content-title" name="heroTitleTemplate" value={content.home.heroTitleTemplate} onChange={handleHomeChange} className="w-full p-3 bg-white border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-input-focus" />
-                        <p className="text-xs text-gray-500 mt-1">Use `[city]` as a placeholder for the city name.</p>
+        <div className="animate-fade-in max-w-4xl">
+            <div className="mb-8">
+                <h1 className="text-3xl font-black uppercase tracking-widest bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent drop-shadow-sm">Site Content</h1>
+                <p className="text-gray-500 mt-2 text-sm leading-relaxed max-w-2xl">
+                    Manage the text content displayed across your website. Changes made here will be reflected instantly on the public-facing pages.
+                </p>
+            </div>
+
+            <div className="space-y-6">
+                {/* Home Page Section */}
+                <Card className="overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <div className="bg-gray-50/50 border-b border-gray-100 px-6 py-4">
+                        <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                            <DocumentCheckIcon className="w-5 h-5 text-primary" />
+                            Home Page Content
+                        </h2>
+                        <p className="text-xs text-gray-500 mt-1">Configure the main headlines and introductory text.</p>
                     </div>
-                    <div>
-                        <label htmlFor="content-subtitle" className="block text-sm font-medium mb-1">Home Page Hero Subtitle</label>
-                        <textarea id="content-subtitle" name="heroSubtitle" rows={3} value={content.home.heroSubtitle} onChange={handleHomeChange} className="w-full p-3 bg-white border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary/50 focus:border-input-focus" />
+
+                    <div className="p-6 space-y-6">
+                        {/* Hero Title */}
+                        <div className="group">
+                            <label htmlFor="content-title" className="block text-xs font-black uppercase tracking-widest text-gray-700 mb-2 transition-colors group-focus-within:text-primary">
+                                Hero Title Template
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    id="content-title"
+                                    name="heroTitleTemplate"
+                                    value={content.home.heroTitleTemplate}
+                                    onChange={handleHomeChange}
+                                    className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-800 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-12"
+                                    placeholder="Enter hero title..."
+                                />
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-focus-within:opacity-100 transition-opacity">
+                                    <PencilAltIcon className="w-4 h-4 text-primary" />
+                                </div>
+                            </div>
+                            <p className="text-[11px] text-gray-400 mt-2 font-medium">Tip: Use <code className="bg-gray-100 text-primary px-1.5 py-0.5 rounded text-[10px] mx-1">[city]</code> as a dynamic placeholder for the user's location.</p>
+                        </div>
+
+                        {/* Hero Subtitle */}
+                        <div className="group">
+                            <label htmlFor="content-subtitle" className="block text-xs font-black uppercase tracking-widest text-gray-700 mb-2 transition-colors group-focus-within:text-primary">
+                                Hero Subtitle Description
+                            </label>
+                            <textarea
+                                id="content-subtitle"
+                                name="heroSubtitle"
+                                rows={4}
+                                value={content.home.heroSubtitle}
+                                onChange={handleHomeChange}
+                                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-800 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
+                                placeholder="Write a compelling subtitle that describes your service..."
+                            />
+                            <div className="flex justify-between items-center mt-2">
+                                <p className="text-[11px] text-gray-400 font-medium">Keep it concise and engaging. Supported on all devices.</p>
+                                <span className={`text-[10px] font-bold ${content.home.heroSubtitle.length > 150 ? 'text-amber-500' : 'text-gray-400'}`}>
+                                    {content.home.heroSubtitle.length} chars
+                                </span>
+                            </div>
+                        </div>
                     </div>
+                </Card>
+
+                {/* Save Bar */}
+                <div className="sticky bottom-4 z-10 flex items-center justify-between p-4 bg-white/90 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-premium animate-in slide-in-from-bottom-4">
+                    <div className="flex items-center gap-3">
+                        {saveStatus === 'success' && (
+                            <div className="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg text-sm font-bold animate-in fade-in zoom-in duration-300">
+                                <DocumentCheckIcon className="w-4 h-4" />
+                                Content successfully published
+                            </div>
+                        )}
+                        {saveStatus === 'error' && (
+                            <div className="flex items-center gap-2 text-red-600 bg-red-50 px-3 py-1.5 rounded-lg text-sm font-bold animate-in fade-in zoom-in duration-300">
+                                <XIcon className="w-4 h-4" />
+                                Save failed. Check permissions (RLS).
+                            </div>
+                        )}
+                        {saveStatus === 'idle' && !isSaving && (
+                            <span className="text-gray-400 text-xs font-medium pl-2 hidden sm:block">All changes are drafted locally until saved.</span>
+                        )}
+                    </div>
+
+                    <button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className={`
+                            flex items-center gap-2 py-2.5 px-6 rounded-xl font-bold text-sm tracking-wide transition-all active:scale-95
+                            ${isSaving ? 'bg-primary/70 cursor-wait text-white select-none' : 'bg-primary text-white hover:shadow-lg hover:shadow-primary/30'}
+                        `}
+                    >
+                        {isSaving ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Saving...
+                            </>
+                        ) : (
+                            <>
+                                <DocumentCheckIcon className="w-4 h-4" />
+                                Publish Changes
+                            </>
+                        )}
+                    </button>
                 </div>
-                <div className="mt-6 text-right">
-                    <button onClick={handleSave} className="bg-secondary text-white font-bold py-2 px-6 rounded-lg">Save Changes</button>
-                </div>
-            </Card>
+            </div>
         </div>
     );
 };
@@ -1261,7 +1394,7 @@ const UserManagementPanel: React.FC<{ adminUsers: AdminUser[]; setAdminUsers: Re
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Name</th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Email</th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Role</th>
-                                    <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-text-muted uppercase tracking-wider">Actions</th>
+                                    <th scope="col" className="px-6 py-3 text-center text-xs font-semibold text-text-muted uppercase tracking-wider min-w-[150px]">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-card">
@@ -1272,9 +1405,15 @@ const UserManagementPanel: React.FC<{ adminUsers: AdminUser[]; setAdminUsers: Re
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-medium">{u.role.name}</span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right font-medium space-x-4">
-                                            <button onClick={() => handleEdit(u)} className="text-primary hover:underline">Edit</button>
-                                            <button onClick={() => handleDelete(u.id)} className="text-error hover:underline">Delete</button>
+                                        <td className="px-6 py-4 whitespace-nowrap text-center font-medium">
+                                            <div className="flex justify-center items-center gap-3">
+                                                <button onClick={() => handleEdit(u)} className="text-primary hover:text-primary-dark transition-colors font-semibold px-3 py-1.5 rounded-lg hover:bg-primary/10">
+                                                    Edit
+                                                </button>
+                                                <button onClick={() => handleDelete(u.id)} className="text-error hover:text-error-dark transition-colors font-semibold px-3 py-1.5 rounded-lg hover:bg-error/10">
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -1443,7 +1582,7 @@ const EmployeesPanel: React.FC<{ employees: Employee[]; setEmployees: React.Disp
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Email</th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Role</th>
                                     <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
-                                    <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-text-muted uppercase tracking-wider">Actions</th>
+                                    <th scope="col" className="px-6 py-3 text-center text-xs font-semibold text-text-muted uppercase tracking-wider min-w-[150px]">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-card">
@@ -1458,9 +1597,15 @@ const EmployeesPanel: React.FC<{ employees: Employee[]; setEmployees: React.Disp
                                                 {employee.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right font-medium space-x-4">
-                                            <button onClick={() => handleEdit(employee)} className="text-primary hover:underline">Edit</button>
-                                            <button onClick={() => handleDelete(employee.id)} className="text-error hover:underline">Delete</button>
+                                        <td className="px-6 py-4 whitespace-nowrap text-center font-medium">
+                                            <div className="flex justify-center items-center gap-3">
+                                                <button onClick={() => handleEdit(employee)} className="text-primary hover:text-primary-dark transition-colors font-semibold px-3 py-1.5 rounded-lg hover:bg-primary/10">
+                                                    Edit
+                                                </button>
+                                                <button onClick={() => handleDelete(employee.id)} className="text-error hover:text-error-dark transition-colors font-semibold px-3 py-1.5 rounded-lg hover:bg-error/10">
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -1527,7 +1672,7 @@ const ApplicationsPanel: React.FC<{ applications: Application[], setApplications
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Position</th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Submitted</th>
                                     <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-right text-xs font-semibold text-text-muted uppercase tracking-wider">Actions</th>
+                                    <th className="px-6 py-3 text-center text-xs font-semibold text-text-muted uppercase tracking-wider min-w-[180px]">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-card">
@@ -1553,9 +1698,15 @@ const ApplicationsPanel: React.FC<{ applications: Application[], setApplications
                                                 <option>Rejected</option>
                                             </select>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right font-medium space-x-4">
-                                            <button onClick={() => handleDownloadResume(app)} className="text-primary hover:underline inline-flex items-center gap-1"><DocumentDownloadIcon className="w-4 h-4" /> Resume</button>
-                                            <button onClick={() => handleDelete(app.id)} className="text-error hover:underline"><TrashIcon className="w-4 h-4 inline-block -mt-1" /> Delete</button>
+                                        <td className="px-6 py-4 whitespace-nowrap text-center font-medium">
+                                            <div className="flex justify-center items-center gap-3">
+                                                <button onClick={() => handleDownloadResume(app)} className="text-primary hover:text-primary-dark transition-colors font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-primary/5">
+                                                    <DocumentDownloadIcon className="w-4 h-4" /> Resume
+                                                </button>
+                                                <button onClick={() => handleDelete(app.id)} className="text-error hover:text-error-dark transition-colors font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-error/5">
+                                                    <TrashIcon className="w-4 h-4" /> Delete
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

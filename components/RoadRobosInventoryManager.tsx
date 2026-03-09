@@ -366,7 +366,9 @@ const RoadRobosInventoryManager: React.FC<{
                 ...resolvedBike, // Fallback if model not found
                 id: Number(unit.id.split('-').pop()) || resolvedBike?.id || 0, // Unique ID for the inventory item
                 name: `${baseName} - ${unit.unit_number}`,
-                checks: checksMap[unit.id as any] ?? defaultChecks(),
+                checks: (unit.checks && Object.keys(unit.checks).length > 0) ? unit.checks : (checksMap[unit.id as any] ?? defaultChecks()),
+                spareParts: unit.spare_parts || resolvedBike?.spareParts || [],
+                assignedTech: unit.assigned_tech || unit.assignedTech || resolvedBike?.assignedTech,
                 status: status,
                 unit: unit,
                 // Override available count logic since this is a single unit
@@ -694,7 +696,7 @@ const RoadRobosInventoryManager: React.FC<{
                                                 <th className="px-6 py-4 text-center font-bold text-gray-400 uppercase tracking-wider text-xs whitespace-nowrap">Registration</th>
                                                 <th className="px-6 py-4 text-center font-bold text-gray-400 uppercase tracking-wider text-xs whitespace-nowrap">Color</th>
                                                 <th className="px-6 py-4 text-left font-bold text-gray-400 uppercase tracking-wider text-xs">Status</th>
-                                                <th className="px-6 py-4 text-right font-bold text-gray-400 uppercase tracking-wider text-xs">Actions</th>
+                                                <th className="px-6 py-4 text-center font-bold text-gray-400 uppercase tracking-wider text-xs min-w-[100px]">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-50">
@@ -737,10 +739,10 @@ const RoadRobosInventoryManager: React.FC<{
                                                                 <option value="Rented">Rented</option>
                                                             </select>
                                                         </td>
-                                                        <td className="px-6 py-4 text-right">
+                                                        <td className="px-6 py-4 text-center">
                                                             <button
                                                                 onClick={() => handleDeleteUnit(unit.id)}
-                                                                className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                                                className="p-2 text-gray-400 hover:text-error hover:bg-error/5 rounded-lg transition-all"
                                                                 title="Delete Unit"
                                                             >
                                                                 <LogoutIcon className="w-5 h-5 rotate-180" />

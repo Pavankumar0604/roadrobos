@@ -69,19 +69,19 @@ const BookingManagementPanel: React.FC<BookingManagementPanelProps> = ({ initial
     };
 
     const handleMarkPaid = async (bookingId: string) => {
-        if (!confirm('Are you sure you want to mark this booking as PAID? Cash should be collected.')) return;
+        if (!confirm('Are you sure you want to mark this booking as COMPLETED/PAID? Cash should be collected.')) return;
 
         try {
             // Update via API
-            await api.booking.updatePaymentStatus(bookingId, 'Paid', 'CASH');
+            await api.booking.updatePaymentStatus(bookingId, 'completed', 'CASH');
 
             // Update local state
             setBookings(prev => prev.map(b =>
                 b.id === bookingId
-                    ? { ...b, payment_status: 'Paid', payment_mode: 'CASH' }
+                    ? { ...b, payment_status: 'completed', payment_mode: 'CASH' }
                     : b
             ));
-            alert('Payment marked as Collected/Paid.');
+            alert('Payment marked as Collected/Completed.');
         } catch (error) {
             console.error('Error updating payment:', error);
             alert('Failed to update payment status.');
@@ -100,8 +100,8 @@ const BookingManagementPanel: React.FC<BookingManagementPanelProps> = ({ initial
         if (filter === 'cancelled' && b.status !== 'Cancelled') return false;
 
         // Payment filter
-        if (paymentFilter === 'paid' && b.payment_status?.toLowerCase() !== 'paid') return false;
-        if (paymentFilter === 'pending' && b.payment_status?.toLowerCase() === 'paid') return false;
+        if (paymentFilter === 'paid' && b.payment_status?.toLowerCase() !== 'completed') return false;
+        if (paymentFilter === 'pending' && b.payment_status?.toLowerCase() === 'completed') return false;
 
         return true;
     });

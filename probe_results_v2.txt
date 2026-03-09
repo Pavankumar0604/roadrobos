@@ -1,0 +1,36 @@
+--- PROBING TRANSACTIONS MORE ---
+PROBE transactions?status=eq.PAID -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum payment_status: \"PAID\""}
+PROBE transactions?status=eq.SUCCESS -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum payment_status: \"SUCCESS\""}
+PROBE transactions?status=eq.COMPLETED -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum payment_status: \"COMPLETED\""}
+PROBE transactions?status=eq.captured -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum payment_status: \"captured\""}
+PROBE transactions?status=eq.Captured -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum payment_status: \"Captured\""}
+PROBE transactions?status=eq.failed -> 200 OK
+PROBE transactions?status=eq.FAILED -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum payment_status: \"FAILED\""}
+
+--- PROBING BOOKINGS MORE ---
+PROBE bookings?status=eq.PENDING -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum booking_status: \"PENDING\""}
+PROBE bookings?status=eq.CONFIRMED -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum booking_status: \"CONFIRMED\""}
+PROBE bookings?status=eq.COMPLETED -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum booking_status: \"COMPLETED\""}
+PROBE bookings?status=eq.CANCELLED -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum booking_status: \"CANCELLED\""}
+PROBE bookings?status=eq.active -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum booking_status: \"active\""}
+PROBE bookings?status=eq.ACTIVE -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum booking_status: \"ACTIVE\""}
+PROBE bookings?status=eq.Confirmed -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum booking_status: \"Confirmed\""}
+PROBE bookings?status=eq.Pending -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum booking_status: \"Pending\""}
+PROBE bookings?select=payment_status -> 200 OK
+PROBE bookings?payment_status=eq.paid -> 400 Bad Request
+ERROR BODY: {"code":"22P02","details":null,"hint":null,"message":"invalid input value for enum payment_status: \"paid\""}
+PROBE bookings?payment_status=eq.pending -> 200 OK

@@ -190,7 +190,7 @@ const TransactionManagementPanel: React.FC<TransactionPanelProps> = ({ transacti
                                     <div className="font-medium text-text-body">{t.customerName}</div>
                                     <div className="font-mono text-xs text-text-muted">{t.id}</div>
                                 </div>
-                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${t.status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${t.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                                     {t.status}
                                 </span>
                             </div>
@@ -236,7 +236,7 @@ const TransactionManagementPanel: React.FC<TransactionPanelProps> = ({ transacti
                                             <td className="px-6 py-4 whitespace-nowrap font-medium text-text-body">{t.customerName}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-text-body font-semibold">₹{t.amount.toFixed(2)}</td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${t.status === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${t.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                                                     {t.status}
                                                 </span>
                                             </td>

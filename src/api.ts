@@ -327,7 +327,7 @@ export const bookingAPI = {
         };
     },
 
-    updatePaymentStatus: async (id: string, status: 'Paid' | 'Pending' | 'Failed', mode?: string) => {
+    updatePaymentStatus: async (id: string, status: 'completed' | 'pending' | 'failed', mode?: string) => {
         const updateData: any = { payment_status: status };
         if (mode) updateData.payment_mode = mode;
 
@@ -341,8 +341,8 @@ export const bookingAPI = {
 
         if (error) throw new Error(error.message);
 
-        // 2. If Paid, Insert Transaction (to sync with Dashboard Revenue)
-        if (status === 'Paid') {
+        // 2. If completed, Insert Transaction (to sync with Dashboard Revenue)
+        if (status === 'completed') {
             try {
                 // Check if transaction already exists to avoid duplicates
                 const { data: existingTx } = await supabase
@@ -355,7 +355,7 @@ export const bookingAPI = {
                     await supabase.from('transactions').insert({
                         booking_id: id,
                         amount: booking.total_payable || booking.total_fare || 0, // Handle both field names
-                        status: 'paid',
+                        status: 'completed',
                         payment_mode: mode || 'CASH',
                         transaction_id: `MANUAL-${Date.now()}` // Generate a manual ID
                     });
@@ -430,39 +430,51 @@ export const utilityAPI = {
 
 export const adminAPI = {
     getDashboardStats: async () => {
-        // Get total bookings count
-        const { count: bookingCount } = await supabase.from('bookings').select('*', { count: 'exact', head: true });
+        try {
+            const [
+                { count: bookingCount },
+                { data: revenueData },
+                { count: bikeCount },
+                { count: activeBookings },
+                { count: newApplications },
+                { count: pendingEnquiries },
+                { count: pendingReviews }
+            ] = await Promise.all([
+                supabase.from('bookings').select('id', { count: 'exact', head: true }),
+                supabase.from('transactions').select('amount').eq('status', 'completed'),
+                supabase.from('bikes').select('id', { count: 'exact', head: true }),
+                supabase.from('bookings').select('id', { count: 'exact', head: true })
+                    .or('status.eq.accepted,status.eq.started'),
+                supabase.from('job_applications').select('id', { count: 'exact', head: true }).eq('status', 'Pending'),
+                supabase.from('enquiries').select('id', { count: 'exact', head: true }).eq('status', 'New'),
+                supabase.from('reviews').select('id', { count: 'exact', head: true }).eq('status', 'Pending')
+            ]);
 
-        // Get total revenue from paid transactions
-        const { data: revenueData } = await supabase
-            .from('transactions')
-            .select('amount')
-            .eq('status', 'paid');
-        const totalRevenue = revenueData?.reduce((sum: number, t: any) => sum + (t.amount || 0), 0) || 0;
+            const totalRevenue = revenueData?.reduce((sum: number, t: any) => sum + (Number(t.amount) || 0), 0) || 0;
+            const fleetUtilization = bikeCount ? Math.round((activeBookings || 0) / bikeCount * 100) : 0;
 
-        // Get bike count for fleet utilization
-        const { count: bikeCount } = await supabase.from('bikes').select('*', { count: 'exact', head: true });
-        const { count: activeBookings } = await supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'Active');
-        const fleetUtilization = bikeCount ? Math.round((activeBookings || 0) / bikeCount * 100) : 0;
-
-        // Get new applications count
-        const { count: newApplications } = await supabase.from('job_applications').select('*', { count: 'exact', head: true }).eq('status', 'Pending');
-
-        // Get pending enquiries
-        const { count: pendingEnquiries } = await supabase.from('enquiries').select('*', { count: 'exact', head: true }).eq('status', 'New');
-
-        // Get pending reviews
-        const { count: pendingReviews } = await supabase.from('reviews').select('*', { count: 'exact', head: true }).eq('status', 'Pending');
-
-        return {
-            totalBookings: bookingCount || 0,
-            totalRevenue: totalRevenue,
-            fleetUtilization: fleetUtilization,
-            newPartners: newApplications || 0,
-            pendingEnquiries: pendingEnquiries || 0,
-            pendingReviews: pendingReviews || 0,
-            bikeCount: bikeCount || 0
-        };
+            return {
+                totalBookings: bookingCount || 0,
+                totalRevenue: totalRevenue,
+                fleetUtilization: fleetUtilization,
+                newPartners: newApplications || 0,
+                pendingEnquiries: pendingEnquiries || 0,
+                pendingReviews: pendingReviews || 0,
+                bikeCount: bikeCount || 0
+            };
+        } catch (error) {
+            console.error("Error fetching dashboard stats:", error);
+            // Return defaults on error to prevent UI crash
+            return {
+                totalBookings: 0,
+                totalRevenue: 0,
+                fleetUtilization: 0,
+                newPartners: 0,
+                pendingEnquiries: 0,
+                pendingReviews: 0,
+                bikeCount: 0
+            };
+        }
     },
 
     getTransactions: async () => {
@@ -848,9 +860,11 @@ export const adminAPI = {
         // Service fields mapping (matches SQL addition)
         if (updates.service_status !== undefined) payload.service_status = updates.service_status;
         if (updates.checks !== undefined) payload.checks = updates.checks;
-        if (updates.assigned_tech !== undefined) payload.assigned_tech = updates.assigned_tech;
-        if (updates.spare_parts !== undefined) payload.spare_parts = updates.spare_parts;
-        if (updates.parts_report !== undefined) payload.parts_report = updates.parts_report;
+        if (updates.assignedTech !== undefined || updates.assigned_tech !== undefined) payload.assigned_tech = updates.assignedTech || updates.assigned_tech;
+        if (updates.spareParts !== undefined || updates.spare_parts !== undefined) payload.spare_parts = updates.spareParts || updates.spare_parts;
+        if (updates.partsReport !== undefined || updates.parts_report !== undefined) payload.parts_report = updates.partsReport || updates.parts_report;
+
+        console.log(">> SERVICE HUB DEBUG: updateBikeUnit | ID:", id, "| Payload:", payload);
 
         const { data, error, status } = await supabase
             .from('bike_units')
@@ -858,6 +872,10 @@ export const adminAPI = {
             .eq('id', id)
             .select()
             .single();
+
+        if (error) {
+            console.error(">> SERVICE HUB DEBUG: updateBikeUnit Error:", error);
+        }
 
         return handleResponse({ data, error, status });
     },

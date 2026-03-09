@@ -60,11 +60,18 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
     const [regNumber, setRegNumber] = useState<string>('');
     const [isDeploying, setIsDeploying] = useState(false);
     const [isHoveringDeploy, setIsHoveringDeploy] = useState(false);
+    const [hasAttemptedDeploy, setHasAttemptedDeploy] = useState(false);
 
-    // Reset color when model changes
+    // Auto-select first color variant when model changes
     useEffect(() => {
-        setSelectedColor('');
-    }, [selectedBikeId]);
+        const bike = baseBikes.find(b => b.id === selectedBikeId);
+        if (bike && bike.colorVariants && bike.colorVariants.length > 0) {
+            setSelectedColor(bike.colorVariants[0].colorName);
+        } else {
+            setSelectedColor('Standard');
+        }
+        setHasAttemptedDeploy(false); // Reset validation state on model change
+    }, [selectedBikeId, baseBikes]);
 
     const selectedBike = useMemo(() => baseBikes.find(b => b.id === selectedBikeId), [baseBikes, selectedBikeId]);
 
@@ -92,8 +99,10 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
     }, [unitNumber, regNumber, selectedColor, inventoryUnits, selectedBike]);
 
     const handleDeploy = () => {
+        setHasAttemptedDeploy(true);
+
         if (!unitNumber || !selectedBikeId || !selectedColor) {
-            alert("Please provide Unique ID and select a Color Variant.");
+            // Visual cues will handle the error conveying instead of alert()
             return;
         }
 
@@ -104,6 +113,7 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
             onDeploy(selectedBikeId, previewBike.uniqueId, regNumber, selectedColor);
             setUnitNumber('');
             setRegNumber('');
+            setHasAttemptedDeploy(false);
             setIsDeploying(false);
             // We keep the selected bike and color for batch addition if needed
 
@@ -193,11 +203,20 @@ const BikeFactoryManager: React.FC<BikeFactoryProps> = ({ bikes, bikeUnits, onDe
                                 <input
                                     type="text"
                                     value={unitNumber}
-                                    onChange={(e) => setUnitNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
-                                    className="flex-1 h-[54px] bg-white border-2 border-gray-100 p-4 rounded-r-xl text-lg font-mono font-black text-primary outline-none focus:border-primary transition-all tabular-nums"
+                                    onChange={(e) => {
+                                        setUnitNumber(e.target.value.replace(/[^0-9]/g, '').slice(0, 4));
+                                        if (hasAttemptedDeploy) setHasAttemptedDeploy(false);
+                                    }}
+                                    className={cn(
+                                        "flex-1 h-[54px] bg-white border-2 p-4 rounded-r-xl text-lg font-mono font-black text-primary outline-none transition-all tabular-nums",
+                                        hasAttemptedDeploy && !unitNumber ? "border-red-500 focus:border-red-500" : "border-gray-100 focus:border-primary"
+                                    )}
                                     placeholder="0001"
                                 />
                             </div>
+                            {hasAttemptedDeploy && !unitNumber && (
+                                <p className="text-xs text-red-500 font-bold mt-1">Unique ID is required to deploy</p>
+                            )}
                         </motion.div>
 
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="space-y-2.5">
